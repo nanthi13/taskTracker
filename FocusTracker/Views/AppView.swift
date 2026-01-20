@@ -112,14 +112,19 @@ struct AppView: View {
                     }
                     StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer)
                     Spacer()
-                    //NavigationLink("View Task History")
+                    NavigationLink("View Task History") {
+                        TaskHistoryView(dataManager: dataManager)
+                    }
+                    .padding()
+                    
                     // taskhistoryView
                 }
-                .padding()
+                .navigationTitle("Focus Tracker")
+                .navigationBarTitleDisplayMode(.large)
+                
+                
             }
-            //navigationtitle("Focus Tracker")
-            .navigationBarTitleDisplayMode(.large)
-            
+         
         }
     }
     
