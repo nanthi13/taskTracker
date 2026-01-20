@@ -1,0 +1,134 @@
+//CREATED  BY: nanthi13 ON 20/01/2026
+
+import SwiftUI
+
+struct AppView: View {
+    
+    @StateObject private var dataManager = DataManager()
+    @StateObject private var timerManager: TimerManager
+    
+    init() {
+        let manager = DataManager()
+        _dataManager = StateObject(wrappedValue: manager)
+        _timerManager = StateObject(wrappedValue: TimerManager(dataManager: manager))
+        
+    }
+    
+    // adding custom minute selection
+    @State private var selectedFocusMinutes: Int = 25
+    @State private var selectedBreakMinutes: Int = 5
+    
+    // computed durations selected from the pickers
+    private var focusDuration: Int { selectedFocusMinutes * 60 }
+    private var breakDuration: Int { selectedBreakMinutes * 60 }
+    
+    private var progress: Double {
+        timerManager.animatedProgress
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 30) {
+                    Text(timerManager.isBreak ? "Break Time" : "Focus Time")
+                        .font(.largeTitle)
+                    
+                    // naming the task
+                    if !timerManager.isRunning && !timerManager.isBreak {
+                        TextField("Enter task name: " , text:
+                                    $timerManager.taskName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding(.horizontal)
+                    } else {
+                        Text(timerManager.taskName)
+                            .font(.title2)
+                            .italic()
+                            .foregroundColor(.gray)
+                    }
+                    ZStack {
+                        // Circle
+                        Circle()
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 10)
+                            .frame(width: 220, height: 220)
+                        
+                        Circle()
+                            .trim(from: 0, to: progress)
+                            .stroke(timerManager.isBreak ? Color.blue : Color.green,
+                                    style: StrokeStyle(lineWidth: 15, lineCap:.round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .frame(width: 220, height: 220)
+                        
+                        Text(timeString(from: timerManager.timeRemaining))
+                            .font(.system(size: 48, weight: .semibold, design: .rounded))
+                            .padding(.vertical)
+                    }
+                    // timer pickers
+                    
+                    if !timerManager.isRunning && !timerManager.isBreak {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(alignment: .top) {
+                                VStack(alignment: .leading) {
+                                    Text("Focus Duration")
+                                        .font(.headline)
+                                    Picker("Focus Duration", selection: $timerManager.selectedFocusMinutes) {
+                                        ForEach(1...60, id: \.self) { minute in
+                                            Text("\(minute) min").tag(minute)
+                                        }
+                                    }
+                                    .pickerStyle(.wheel)
+                                    .frame(width: 100, height: 120)
+                                    .clipped()
+                                }
+                                Spacer()
+                                
+                                VStack(alignment: .leading) {
+                                    Text("Break Duration")
+                                        .font(.headline)
+                                    Picker("Break Duration", selection: $timerManager.selectedBreakMinutes) {
+                                        ForEach(1...30, id: \.self) { minute in
+                                            Text("\(minute) min").tag(minute)
+                                        }
+                                    }
+                                    .pickerStyle(.wheel)
+                                    .frame(width: 100, height: 120)
+                                    .clipped()
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .onChange(of: timerManager.selectedFocusMinutes) {
+                            timerManager.timeRemaining = timerManager.selectedFocusMinutes * 60
+                        }
+                    } else {
+                        HStack {
+                            Text("Focus: \(timerManager.selectedFocusMinutes) min")
+                            Spacer()
+                            Text("Break: \(timerManager.selectedBreakMinutes) min")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                    }
+                    //StartStopButtonView
+                    Spacer()
+                    //NavigationLink("View Task History")
+                    // taskhistoryView
+                }
+                .padding()
+            }
+            //navigationtitle("Focus Tracker")
+            navigationBarTitleDisplayMode(.large)
+        }
+    }
+    
+    func timeString(from seconds: Int) -> String {
+        let minutes = seconds / 60
+        let seconds = seconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
+#Preview {
+    AppView()
+}
