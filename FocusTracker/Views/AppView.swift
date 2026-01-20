@@ -4,15 +4,15 @@ import SwiftUI
 
 struct AppView: View {
     
-    @StateObject private var dataManager = DataManager()
+    @StateObject private var dataManager: DataManager
     @StateObject private var timerManager: TimerManager
-    
+
     init() {
         let manager = DataManager()
         _dataManager = StateObject(wrappedValue: manager)
         _timerManager = StateObject(wrappedValue: TimerManager(dataManager: manager))
-        
     }
+
     
     // adding custom minute selection
     @State private var selectedFocusMinutes: Int = 25
@@ -110,7 +110,7 @@ struct AppView: View {
                         .foregroundColor(.secondary)
                         .padding(.horizontal)
                     }
-                    //StartStopButtonView
+                    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer)
                     Spacer()
                     //NavigationLink("View Task History")
                     // taskhistoryView
@@ -118,7 +118,8 @@ struct AppView: View {
                 .padding()
             }
             //navigationtitle("Focus Tracker")
-            navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.large)
+            
         }
     }
     
