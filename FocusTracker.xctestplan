@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "F0B587EF-80B9-43C5-96FB-C017D1E0F2FA",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:FocusTracker.xcodeproj",
+      "identifier" : "EBE898362F1FC6AE00EA974E",
+      "name" : "FocusTracker"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:FocusTracker.xcodeproj",
+        "identifier" : "EBE898432F1FC6B000EA974E",
+        "name" : "FocusTrackerTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:FocusTracker.xcodeproj",
+        "identifier" : "EBE8984D2F1FC6B000EA974E",
+        "name" : "FocusTrackerUITests"
+      }
+    }
+  ],
+  "version" : 1
+}
