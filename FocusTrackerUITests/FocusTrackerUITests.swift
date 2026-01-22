@@ -4,6 +4,15 @@ import XCTest
 @testable import FocusTracker
 
 final class FocusTrackerUITests: XCTestCase {
+    
+    var app: XCUIApplication!
+    
+    override func setUp() {
+            super.setUp()
+            continueAfterFailure = false
+            app = XCUIApplication()
+            app.launch()
+        }
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -25,11 +34,40 @@ final class FocusTrackerUITests: XCTestCase {
         app.launch()
         
         XCTAssertTrue(app.navigationBars["Focus Tracker"].waitForExistence(timeout: 3))
-        let model = PomodoroTaskModel(name: "Reading", duration: 10, date: Date())
         
+        let taskField = app.textFields["taskNameField"]
+        XCTAssertTrue(taskField.exists)
+        
+        taskField.tap()
+        taskField.typeText("Reading")
+        XCTAssertTrue(taskField.label == "Reading")
+
 
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
+    
+    func testStartFocusTimer() {
+
+        let taskField = app.textFields["taskNameField"]
+        XCTAssertTrue(taskField.exists)
+
+        taskField.tap()
+        taskField.typeText("Study SwiftUI")
+
+        let startButton = app.buttons["startButton"]
+        XCTAssertTrue(startButton.exists)
+
+        startButton.tap()
+
+        let timerLabel = app.staticTexts["timerTimeLabel"]
+        XCTAssertTrue(timerLabel.exists)
+
+        // Timer should start counting down
+        let initialValue = timerLabel.label
+        sleep(2)
+        XCTAssertNotEqual(timerLabel.label, initialValue)
+    }
+
 
     @MainActor
     func testLaunchPerformance() throws {
