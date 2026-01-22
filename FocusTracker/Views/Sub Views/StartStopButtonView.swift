@@ -16,16 +16,21 @@ struct StartStopButtonsView: View {
             case .idle:
                 Button("Start", action: start)
                     .buttonStyle(PomodoroButtonStyle(color: .green))
+                    .accessibilityIdentifier("startButton")
             case .running:
                 Button("Pause", action: pause)
                     .buttonStyle(PomodoroButtonStyle(color: .teal))
+                    .accessibilityIdentifier("pauseButton")
                 Button("Reset", action: reset)
                     .buttonStyle(PomodoroButtonStyle(color: .red))
+                    .accessibilityIdentifier("resetButton")
             case .paused:
                 Button("Resume", action: start)
                     .buttonStyle(PomodoroButtonStyle(color: .green))
+                    .accessibilityIdentifier("resumeButton")
                 Button("Reset", action: reset)
                     .buttonStyle(PomodoroButtonStyle(color: .red))
+                    .accessibilityIdentifier("resetButton")
             }
         }
         .animation(.easeInOut, value: state)

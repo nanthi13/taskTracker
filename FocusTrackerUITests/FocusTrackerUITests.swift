@@ -1,6 +1,7 @@
 //CREATED  BY: nanthi13ON 20/01/2026
 
 import XCTest
+@testable import FocusTracker
 
 final class FocusTrackerUITests: XCTestCase {
 
@@ -22,6 +23,10 @@ final class FocusTrackerUITests: XCTestCase {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
+        
+        XCTAssertTrue(app.navigationBars["Focus Tracker"].waitForExistence(timeout: 3))
+        let model = PomodoroTaskModel(name: "Reading", duration: 10, date: Date())
+        
 
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }

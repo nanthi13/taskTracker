@@ -32,6 +32,7 @@ struct AppView: View {
                 VStack(spacing: 30) {
                     Text(timerManager.isBreak ? "Break Time" : "Focus Time")
                         .font(.largeTitle)
+                        .accessibilityIdentifier("timerTitle")
                     
                     // naming the task
                     if !timerManager.isRunning && !timerManager.isBreak {
@@ -39,11 +40,13 @@ struct AppView: View {
                                     $timerManager.taskName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
+                        .accessibilityIdentifier("taskNameField")
                     } else {
                         Text(timerManager.taskName)
                             .font(.title2)
                             .italic()
                             .foregroundColor(.gray)
+                            .accessibilityLabel("timerTitle")
                     }
                     ZStack {
                         // Circle
@@ -62,6 +65,7 @@ struct AppView: View {
                         Text(timeString(from: timerManager.timeRemaining))
                             .font(.system(size: 48, weight: .semibold, design: .rounded))
                             .padding(.vertical)
+                            .accessibilityIdentifier("timerTimeLabel")
                     }
                     // timer pickers
                     
@@ -79,6 +83,7 @@ struct AppView: View {
                                     .pickerStyle(.wheel)
                                     .frame(width: 100, height: 120)
                                     .clipped()
+                                    .accessibilityIdentifier("focusPicker")
                                 }
                                 Spacer()
                                 
@@ -93,6 +98,9 @@ struct AppView: View {
                                     .pickerStyle(.wheel)
                                     .frame(width: 100, height: 120)
                                     .clipped()
+                                    .accessibilityIdentifier("breakPicker")
+
+                                    
                                 }
                             }
                             .padding(.horizontal)
