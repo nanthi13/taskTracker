@@ -46,6 +46,7 @@ final class FocusTrackerUITests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
     
+    
     func testStartFocusTimer() {
 
         let taskField = app.textFields["taskNameField"]
@@ -66,6 +67,17 @@ final class FocusTrackerUITests: XCTestCase {
         let initialValue = timerLabel.label
         sleep(2)
         XCTAssertNotEqual(timerLabel.label, initialValue)
+    }
+    
+    // tests changes to focus duration when selecting a time using the picker
+    func testChangeFocusDuration() {
+        let focusPicker = app.pickers["focusPicker"]
+        XCTAssertTrue(focusPicker.exists)
+        
+        focusPicker.pickerWheels.element.adjust(toPickerWheelValue: "45 min")
+        
+        let timerLabel = app.staticTexts["timerTimeLabel"]
+        XCTAssertEqual(timerLabel.label, "45:00")
     }
 
 
