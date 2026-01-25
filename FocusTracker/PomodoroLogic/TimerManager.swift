@@ -46,7 +46,16 @@ class TimerManager: ObservableObject {
     
     func startTimer() {
         guard !isRunning else { return }
-        
+        timerStartResumeSetup(isResume: false)
+    }
+    
+    func resumeTimer() {
+        guard state == .paused else { return }
+        timerStartResumeSetup(isResume: true)
+    }
+    
+    // basic timer setup for starting and resuming
+    private func timerStartResumeSetup2(isResume: Bool) {
         state = .running
         isRunning = true
         
@@ -71,18 +80,76 @@ class TimerManager: ObservableObject {
                         self.finishFocusSession() // log the task
                     } else {
                         // break finished → start next focus
-                        self.isBreak = false
-                        self.timeRemaining = self.focusDuration
-                        self.state = .idle
-                        self.isRunning = false
+                        self.breakTimerFinished()
                     }
                 }
             }
         }
     }
 
+    private func timerStartResumeSetup(isResume: Bool) {
+        state = .running
+        isRunning = true
+
+        let totalDuration: Int
+        if isUITesting {
+            totalDuration = 4
+        } else {
+            totalDuration = isBreak ? breakDuration : focusDuration
+        }
+
+        // ⬇️ Only reset time on fresh start
+        if !isResume {
+            timeRemaining = totalDuration
+            animatedProgress = 0
+        }
+
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            Task { @MainActor in
+                if self.timeRemaining > 0 {
+                    self.timeRemaining -= 1
+
+                    withAnimation(.linear(duration: 1.0)) {
+                        self.animatedProgress =
+                            1 - Double(self.timeRemaining) / Double(totalDuration)
+                    }
+                } else {
+                    self.timer?.invalidate()
+                    self.playSystemSound()
+
+                    if self.isBreak {
+                        self.breakTimerFinished()
+                    } else {
+                        self.finishFocusSession()
+                    }
+                }
+            }
+        }
+    }
+
+    
+    private func startBreakTimer2() {
+        let duration = isUITesting ? 4 : breakDuration
+        self.timeRemaining = duration
+        isBreak = true
+        
+        withAnimation(.easeInOut(duration: 0.5)) {
+            animatedProgress = 0
+        }
+    }
+    
+    private func breakTimerFinished() {
+        self.isBreak = false
+        self.timeRemaining = self.focusDuration
+        self.state = .idle
+        self.isRunning = false
+        print("break finished")
+    }
+
 
     func pauseTimer() {
+        // makes sure pause timer
+        guard state == .running else { return }
         state = .paused
         timer?.invalidate()
         isRunning = false

@@ -118,7 +118,8 @@ struct AppView: View {
                         .foregroundColor(.secondary)
                         .padding(.horizontal)
                     }
-                    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer)
+                    
+                    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer)
                     Spacer()
                     NavigationLink("View Task History") {
                         TaskHistoryView(dataManager: dataManager)
