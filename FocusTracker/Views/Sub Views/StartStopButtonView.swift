@@ -25,6 +25,7 @@ struct StartStopButtonsView: View {
                     .buttonStyle(PomodoroButtonStyle(color: .red))
                     .accessibilityIdentifier("resetButton")
             case .paused:
+                // resume does the same as start !
                 Button("Resume", action: start)
                     .buttonStyle(PomodoroButtonStyle(color: .green))
                     .accessibilityIdentifier("resumeButton")
