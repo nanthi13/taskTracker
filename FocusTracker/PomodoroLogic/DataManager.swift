@@ -24,10 +24,13 @@ class DataManager: ObservableObject {
         #endif
     }
     
+    
+    
     // add task to persistent storage
     func addTask(name: String, duration: Int) {
         let task = PomodoroTaskModel(name: name, duration: duration, date: Date())
         tasks.append(task)
+        print("✅ TASK ADDED:", name)
         saveTasks()
     }
     

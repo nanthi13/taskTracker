@@ -124,6 +124,7 @@ struct AppView: View {
                         TaskHistoryView(dataManager: dataManager)
                     }
                     .padding()
+                    .accessibilityIdentifier("taskHistoryLink")
                     
                     // taskhistoryView
                 }

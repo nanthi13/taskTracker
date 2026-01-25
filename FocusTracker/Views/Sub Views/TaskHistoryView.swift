@@ -19,6 +19,8 @@ struct TaskHistoryView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(task.name)
                                 .font(.headline)
+                                .accessibilityIdentifier("taskRow_\(task.name)")
+                            
                             Text("Focused for \(timeString(from: task.duration)) on \(task.date.formatted(date: .abbreviated, time: .shortened))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -75,5 +77,6 @@ struct TaskHistoryView: View {
     
     return NavigationStack {
         TaskHistoryView(dataManager: mockData)
+            .accessibilityIdentifier("taskHistoryList")
     }
 }

@@ -31,6 +31,11 @@ class TimerManager: ObservableObject {
     var focusDuration: Int { selectedFocusMinutes * 60 }
     var breakDuration: Int { selectedBreakMinutes * 60 }
     
+    private var isUITesting: Bool {
+        ProcessInfo.processInfo.arguments.contains("UI_TESTING")
+    }
+
+    
     init(dataManager: DataManager, focusMinutes: Int = 25, breakMinutes: Int = 5) {
         self.dataManager = dataManager
         self.selectedFocusMinutes = focusMinutes
@@ -38,43 +43,45 @@ class TimerManager: ObservableObject {
         selectedBreakMinutes = breakMinutes
     }
     
+    
     func startTimer() {
         guard !isRunning else { return }
+        
         state = .running
         isRunning = true
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) {
-            _ in
+        
+        // Determine the duration: normal focus or short for UI test
+        // sets the timer for 4 seconds when testing
+        let duration = isUITesting ? 4 : focusDuration
+        self.timeRemaining = duration
+
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in
                 if self.timeRemaining > 0 {
                     self.timeRemaining -= 1
-                    let total = self.isBreak ? self.breakDuration : self.focusDuration
-                    withAnimation(.linear(duration:1.0)) {
-                        self.animatedProgress = 1 -
-                        Double(self.timeRemaining) / Double(total)
+                    let total = self.isBreak ? self.breakDuration : duration
+                    withAnimation(.linear(duration: 1.0)) {
+                        self.animatedProgress = 1 - Double(self.timeRemaining) / Double(total)
                     }
                 } else {
                     self.timer?.invalidate()
                     self.playSystemSound()
-                    self.isRunning = false
-                    self.state = .idle
                     
                     if !self.isBreak {
-                        self.dataManager.addTask(name: self.taskName.isEmpty ? "Unnamed Task" : self.taskName, duration: self.focusDuration)
+                        self.finishFocusSession() // log the task
+                    } else {
+                        // break finished → start next focus
+                        self.isBreak = false
+                        self.timeRemaining = self.focusDuration
+                        self.state = .idle
+                        self.isRunning = false
                     }
-                    self.isBreak.toggle()
-                    self.timeRemaining = self.isBreak ? self.breakDuration : self.focusDuration
-                    
-                    // reset timer animation
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        self.animatedProgress = 0
-                    }
-                    
-                    
                 }
             }
         }
     }
-    
+
+
     func pauseTimer() {
         state = .paused
         timer?.invalidate()
@@ -93,5 +100,27 @@ class TimerManager: ObservableObject {
     private func playSystemSound() {
         AudioServicesPlaySystemSound(1005)
     }
+    
+    // used for testing
+    private func finishFocusSession() {
+        timer?.invalidate()
+        isRunning = false
+        state = .idle
+        
+        dataManager.addTask(
+            name: taskName.isEmpty ? "Unnamed Task" : taskName,
+            duration: focusDuration
+        )
+        
+        isBreak = true
+        timeRemaining = breakDuration
+        
+        withAnimation(.easeInOut(duration: 0.5)) {
+            animatedProgress = 0
+        }
+        
+    }
+    
+    
     
 }
