@@ -9,6 +9,7 @@ struct StartStopButtonsView: View {
     let start: () -> Void
     let pause: () -> Void
     let reset: () -> Void
+    let resume: () -> Void
     
     var body: some View{
         HStack(spacing: 30) {
@@ -26,7 +27,7 @@ struct StartStopButtonsView: View {
                     .accessibilityIdentifier("resetButton")
             case .paused:
                 // resume does the same as start !
-                Button("Resume", action: start)
+                Button("Resume", action: resume)
                     .buttonStyle(PomodoroButtonStyle(color: .green))
                     .accessibilityIdentifier("resumeButton")
                 Button("Reset", action: reset)
@@ -41,6 +42,6 @@ struct StartStopButtonsView: View {
 #Preview {
     let dataManager = DataManager()
     let timerManager = TimerManager(dataManager: dataManager)
-    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer)
+    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer)
 }
 
