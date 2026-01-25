@@ -71,14 +71,29 @@ class TimerManager: ObservableObject {
                         self.finishFocusSession() // log the task
                     } else {
                         // break finished → start next focus
-                        self.isBreak = false
-                        self.timeRemaining = self.focusDuration
-                        self.state = .idle
-                        self.isRunning = false
+                        self.breakTimerFinished()
                     }
                 }
             }
         }
+    }
+    
+    private func startBreakTimer2() {
+        let duration = isUITesting ? 4 : breakDuration
+        self.timeRemaining = duration
+        isBreak = true
+        
+        withAnimation(.easeInOut(duration: 0.5)) {
+            animatedProgress = 0
+        }
+    }
+    
+    private func breakTimerFinished() {
+        self.isBreak = false
+        self.timeRemaining = self.focusDuration
+        self.state = .idle
+        self.isRunning = false
+        print("break finished")
     }
 
 
