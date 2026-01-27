@@ -32,7 +32,7 @@ struct AppView: View {
                 VStack(spacing: 30) {
                     Text(timerManager.isBreak ? "Break Time" : "Focus Time")
                         .font(.largeTitle)
-                        .accessibilityIdentifier("timerTitle")
+                        .accessibilityIdentifier("timerModeLabel")
                     
                     // naming the task
                     if !timerManager.isRunning && !timerManager.isBreak {
