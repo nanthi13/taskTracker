@@ -30,12 +30,12 @@ struct AppView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 30) {
-                    Text(timerManager.isBreak ? "Break Time" : "Focus Time")
+                    Text(timerManager.mode == .breakTime ? "Break Time" : "Focus Time")
                         .font(.largeTitle)
                         .accessibilityIdentifier("timerModeLabel")
                     
                     // naming the task
-                    if !timerManager.isRunning && !timerManager.isBreak {
+                    if timerManager.state == .idle && timerManager.mode == .focus {
                         TextField("Enter task name: " , text:
                                     $timerManager.taskName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -56,7 +56,7 @@ struct AppView: View {
                         
                         Circle()
                             .trim(from: 0, to: progress)
-                            .stroke(timerManager.isBreak ? Color.blue : Color.green,
+                            .stroke(timerManager.mode == .breakTime ? Color.blue : Color.green,
                                     style: StrokeStyle(lineWidth: 15, lineCap:.round)
                             )
                             .rotationEffect(.degrees(-90))
@@ -69,7 +69,7 @@ struct AppView: View {
                     }
                     // timer pickers
                     
-                    if !timerManager.isRunning && !timerManager.isBreak {
+                    if timerManager.state == .idle && timerManager.mode == .focus {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(alignment: .top) {
                                 VStack(alignment: .leading) {
