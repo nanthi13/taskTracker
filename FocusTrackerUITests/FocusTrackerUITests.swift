@@ -70,6 +70,53 @@ final class FocusTrackerUITests: XCTestCase {
         XCTAssertNotEqual(timerLabel.label, initialValue)
     }
     
+    //TODO: complete test
+    func testBreakTimerFlow() {
+        // enter task name
+        let taskField = app.textFields["taskNameField"]
+        XCTAssertTrue(taskField.waitForExistence(timeout: 2))
+        taskField.tap()
+        taskField.typeText("Break Test Task")
+        
+        // start focus timer
+        let startButton = app.buttons["startButton"]
+        XCTAssertTrue(startButton.exists)
+        startButton.tap()
+        
+        // verify focus timer starts
+        let timerLabel = app.staticTexts["timerTimeLabel"]
+        XCTAssertTrue(timerLabel.waitForExistence(timeout: 3))
+        
+        // wait for timer to finish
+        sleep(5
+        )
+        // verify app switches to break mode
+        let breakTitle = app.staticTexts["Break Time"]
+        XCTAssertTrue(
+            breakTitle.waitForExistence(timeout: 3),
+            "App did not enter Break Mode")
+        
+        let breakInitialValue = timerLabel.label
+        
+        sleep(2)
+        XCTAssertEqual(timerLabel.label, breakInitialValue, "Break timer did not start count down")
+        
+        // wait for break to finish
+        sleep(3)
+        
+        // Verify app returns to idle Focus state
+        // test fails due to break time not auto starting
+        // TODO: refactor timerManager to support auto start break timer
+        let focusTitle = app.staticTexts["Focus Time"]
+        XCTAssertTrue(focusTitle.waitForExistence(timeout: 3), "App did not return to focus time after break")
+        
+        // app enters idle state and makes timee pickers available
+        XCTAssertTrue(app.pickers["focusPicker"].exists)
+        XCTAssertTrue(app.pickers["breakPicker"].exists)
+    }
+    
+    
+    
     // tests changes to focus duration when selecting a time using the picker
     func testChangeFocusDuration() {
         let focusPicker = app.pickers["focusPicker"]
