@@ -30,6 +30,12 @@ struct AppView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 30) {
+                    if timerManager.taskName.isEmpty {
+                        Text("Focus Tracker App")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .transition(.opacity)
+                    }
                     Text(timerManager.mode == .breakTime ? "Break Time" : "Focus Time")
                         .font(.largeTitle)
                         .accessibilityIdentifier("timerModeLabel")
@@ -75,6 +81,7 @@ struct AppView: View {
                                 VStack(alignment: .leading) {
                                     Text("Focus Duration")
                                         .font(.headline)
+                                    // building timer picker
                                     Picker("Focus Duration", selection: $timerManager.selectedFocusMinutes) {
                                         ForEach(1...60, id: \.self) { minute in
                                             Text("\(minute) min").tag(minute)
@@ -121,20 +128,15 @@ struct AppView: View {
                     
                     StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer)
                     Spacer()
+                    
+                    // taskhistoryView
                     NavigationLink("View Task History") {
                         TaskHistoryView(dataManager: dataManager)
                     }
                     .padding()
                     .accessibilityIdentifier("taskHistoryLink")
-                    
-                    // taskhistoryView
                 }
-                .navigationTitle("Focus Tracker")
-                .navigationBarTitleDisplayMode(.large)
-                
-                
             }
-         
         }
     }
     
