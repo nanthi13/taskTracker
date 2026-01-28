@@ -55,7 +55,8 @@ final class FocusTrackerUITests: XCTestCase {
         
         taskField.tap()
         taskField.typeText("Study SwiftUI")
-        
+        XCUIApplication().keyboards.buttons["Return"].tap()
+
         let startButton = app.buttons["startButton"]
         XCTAssertTrue(startButton.exists)
         
@@ -66,8 +67,10 @@ final class FocusTrackerUITests: XCTestCase {
         
         // Timer should start counting down
         let initialValue = timerLabel.label
-        sleep(2)
-        XCTAssertNotEqual(timerLabel.label, initialValue)
+        let predicate = NSPredicate(format: "label != %@", initialValue)
+        let expectation = expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
+        
+        wait(for: [expectation], timeout: 5) // max 5 seconds
     }
     
     //TODO: complete test
@@ -152,8 +155,12 @@ final class FocusTrackerUITests: XCTestCase {
         
         // 5. Verify task appears in history
         let taskCell = app.staticTexts["taskRow_\(taskName)"]
+        let existsPredicate = NSPredicate(format: "exists == true")
+        expectation(for: existsPredicate, evaluatedWith: taskCell, handler: nil)
+        waitForExpectations(timeout: 6)
         
-        XCTAssertTrue(taskCell.waitForExistence(timeout: 5))
+        // 5. Verify
+        XCTAssertTrue(taskCell.exists)
         
 
     }
