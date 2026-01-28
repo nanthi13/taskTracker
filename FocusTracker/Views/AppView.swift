@@ -6,6 +6,7 @@ struct AppView: View {
     
     @StateObject private var dataManager: DataManager
     @StateObject private var timerManager: TimerManager
+    
 
     init() {
         let manager = DataManager()
@@ -42,11 +43,11 @@ struct AppView: View {
                     
                     // naming the task
                     if timerManager.state == .idle && timerManager.mode == .focus {
-                        TextField("Enter task name: " , text:
-                                    $timerManager.taskName)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .padding(.horizontal)
-                        .accessibilityIdentifier("taskNameField")
+                        
+                        TaskNameTextField(text: $timerManager.taskName)
+                            .padding(.horizontal)
+                            .accessibilityIdentifier("taskNameField")
+
                     } else {
                         Text(timerManager.taskName)
                             .font(.title2)
