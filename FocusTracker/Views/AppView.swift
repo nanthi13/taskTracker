@@ -31,12 +31,12 @@ struct AppView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 30) {
-                    if timerManager.taskName.isEmpty {
-                        Text("Focus Tracker App")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .transition(.opacity)
-                    }
+                    Text("Focus Tracker App")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .opacity(timerManager.taskName.isEmpty ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.25), value: timerManager.taskName)
+                    
                     Text(timerManager.mode == .breakTime ? "Break Time" : "Focus Time")
                         .font(.largeTitle)
                         .accessibilityIdentifier("timerModeLabel")
