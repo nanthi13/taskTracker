@@ -7,8 +7,8 @@ struct TaskNameTextField: View {
     @Binding var text: String
     
     @FocusState private var isFocused: Bool
-
-
+    
+    
     var body: some View {
         TextField("Enter task name", text: $text)
             .focused($isFocused)
@@ -16,13 +16,19 @@ struct TaskNameTextField: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(.systemGray6))
+                    .fill(isFocused ? Color(.systemGray5) : Color(.systemGray6))
             )
+
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(Color(.systemGray3), lineWidth: 1)
+                    .stroke(isFocused ? Color.blue : Color(.systemGray3), lineWidth: isFocused ? 3 : 1)
             )
+            // highlight animation
+            .animation(.easeInOut(duration: 0.2), value: isFocused)
             .padding(.horizontal)
+        
+        
+        
     }
 }
 
