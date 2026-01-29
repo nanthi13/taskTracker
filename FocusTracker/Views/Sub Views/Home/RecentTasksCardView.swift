@@ -19,7 +19,7 @@ struct RecentTasksCardView: View {
                     .padding()
             } else {
                 // Show up to 3 most recent tasks
-                ForEach(dataManager.tasks.prefix(3)) { task in
+                ForEach(dataManager.tasks.sorted(by: { $0.date > $1.date }).prefix(3)) { task in
                     HStack {
                         VStack(alignment: .leading) {
                             Text(task.name)
