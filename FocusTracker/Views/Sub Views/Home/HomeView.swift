@@ -121,7 +121,7 @@ struct HomeView: View {
                         .padding(.horizontal)
                     }
                     
-                    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer)
+                    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer, scrollProxy: proxy)
                     Spacer()
                     
                     // taskhistoryView

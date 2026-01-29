@@ -11,7 +11,9 @@ struct RecentTasksCardView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Recent Tasks")
                 .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal)
+                
 
             if dataManager.tasks.isEmpty {
                 Text("No tasks yet.")

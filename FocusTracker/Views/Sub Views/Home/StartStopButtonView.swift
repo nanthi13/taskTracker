@@ -10,14 +10,20 @@ struct StartStopButtonsView: View {
     let pause: () -> Void
     let reset: () -> Void
     let resume: () -> Void
+    var scrollProxy: ScrollViewProxy
     
     var body: some View{
         HStack(spacing: 30) {
             switch state {
             case .idle:
-                Button("Start", action: start)
-                    .buttonStyle(PomodoroButtonStyle(color: .green))
-                    .accessibilityIdentifier("startButton")
+                Button("Start") {
+                    start()
+                    withAnimation(.easeInOut) {
+                        scrollProxy.scrollTo("focusTime", anchor: .top)
+                    }
+                }
+                .buttonStyle(PomodoroButtonStyle(color: .green))
+                .accessibilityIdentifier("startButton")
             case .running:
                 Button("Pause", action: pause)
                     .buttonStyle(PomodoroButtonStyle(color: .teal))
@@ -39,9 +45,9 @@ struct StartStopButtonsView: View {
     }
 }
 
-#Preview {
-    let dataManager = DataManager()
-    let timerManager = TimerManager(dataManager: dataManager)
-    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer)
-}
+//#Preview {
+//    let dataManager = DataManager()
+//    let timerManager = TimerManager(dataManager: dataManager)
+//    StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer, scrollProxy: proxy)
+//}
 
