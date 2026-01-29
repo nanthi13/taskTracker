@@ -109,7 +109,7 @@ final class FocusTrackerUITests: XCTestCase {
         
         // Verify app returns to idle Focus state
         // test fails due to break time not auto starting
-        // TODO: refactor timerManager to support auto start break timer
+        // TODO: refactor timerManager and AppViiee to support auto start break timer
         let focusTitle = app.staticTexts["Focus Time"]
         XCTAssertTrue(focusTitle.waitForExistence(timeout: 3), "App did not return to focus time after break")
         
