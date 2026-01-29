@@ -125,11 +125,10 @@ struct HomeView: View {
                     Spacer()
                     
                     // taskhistoryView
-                    NavigationLink("View Task History") {
-                        TaskHistoryView(dataManager: dataManager)
-                    }
+                    //TODO: change this to a card view showing 3 most recent tasks from taskhistory
+                    RecentTasksCardView(dataManager: dataManager, selectedTab: $selectedTab)
                     .padding()
-                    .accessibilityIdentifier("taskHistoryLink")
+                    .accessibilityIdentifier("taskHistoryTab")
                 }
             }
             

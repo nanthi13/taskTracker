@@ -29,8 +29,6 @@ struct AppViewCopy: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                //                Tab("Home", systemImage: "tray.and.arrow.up.fill") {
-                //                TaskHistoryView(dataManager: dataManager)
                 HomeView(
                     selectedTab: $selectedTab,
                     timerManager: timerManager,
@@ -42,7 +40,6 @@ struct AppViewCopy: View {
             .tag(AppTab.home)
             
             NavigationStack {
-                //                           TODO: fix implementation
                 TaskHistoryView(dataManager: dataManager)
             }
             .tabItem {
@@ -58,15 +55,6 @@ struct AppViewCopy: View {
                 Label("Profile", systemImage: "person.crop.circle.fill")
             }
             .tag(AppTab.profile)
-            
-            
-            //            Tab("Profile", systemImage: "person.crop.circle.fill") {
-            //                ChartView()
-            //            }
-            
-            //            Tab("History", systemImage: "tray.and.arrow.up.fill") {
-            ////                TaskHistoryView(dataManager: dataManager)
-            //            }
             
         }
     }
