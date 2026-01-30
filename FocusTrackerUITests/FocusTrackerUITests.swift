@@ -40,9 +40,6 @@ final class FocusTrackerUITests: XCTestCase {
         taskField.tap()
         taskField.typeText("Reading")
         XCTAssertEqual(taskField.value as? String, "Reading")
-        
-        
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
     
     
@@ -158,11 +155,10 @@ final class FocusTrackerUITests: XCTestCase {
  
         // implementation succeeds only if list is small enough to be seen in view
         let taskCell = app.staticTexts["taskRow_\(taskName)"]
-        XCTAssertTrue(taskCell.waitForExistence(timeout: 20))
+        XCTAssertTrue(taskCell.waitForExistence(timeout: 5))
         
         // 6. Clear all tasks to prevent task clutter causing test to fail
-
-        
+        testDeleteTasks()
     }
     
     func testDeleteTasks() {
