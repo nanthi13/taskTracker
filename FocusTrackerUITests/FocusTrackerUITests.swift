@@ -29,19 +29,17 @@ final class FocusTrackerUITests: XCTestCase {
     }
     
     @MainActor
-    func testExample() throws {
+    func testNamingTask() throws {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
-        // TODO: might not show up due to updated funcitons when entering taskname title name disappears
-        XCTAssertTrue(app.navigationBars["Focus Tracker"].waitForExistence(timeout: 3))
         
         let taskField = app.textFields["taskNameField"]
         XCTAssertTrue(taskField.exists)
         
         taskField.tap()
         taskField.typeText("Reading")
-        XCTAssertTrue(taskField.label == "Reading")
+        XCTAssertEqual(taskField.value as? String, "Reading")
         
         
         // Use XCTAssert and related functions to verify your tests produce the correct results.
@@ -102,6 +100,7 @@ final class FocusTrackerUITests: XCTestCase {
         let breakInitialValue = timerLabel.label
         
         sleep(2)
+        // test failed
         XCTAssertEqual(timerLabel.label, breakInitialValue, "Break timer did not start count down")
         
         // wait for break to finish

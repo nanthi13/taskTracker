@@ -131,7 +131,6 @@ struct HomeView: View {
                     .accessibilityIdentifier("taskHistoryTab")
                 }
             }
-            
         }
     }
     
