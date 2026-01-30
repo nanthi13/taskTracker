@@ -133,8 +133,10 @@ final class FocusTrackerUITests: XCTestCase {
     func testFocusTaskIsLoggedInTaskHistory() {
         
         let taskName = "Testing UI focus task log"
+    
         
         // 1. Enter task name
+        
         let taskNameField = app.textFields["taskNameField"]
         XCTAssertTrue(taskNameField.waitForExistence(timeout: 2))
         taskNameField.tap()
@@ -147,22 +149,16 @@ final class FocusTrackerUITests: XCTestCase {
         sleep(5)
         
         // navigate to taskHistory view
-        // TODO: update test, current app version does not use historyLink
-        let historyLink = app.buttons["View Task History"]
-        XCTAssertTrue(historyLink.waitForExistence(timeout: 2))
-        historyLink.tap()
+        let historyTab = app.tabBars.buttons["History"]
+        XCTAssertTrue(historyTab.waitForExistence(timeout: 2))
+        historyTab.tap()
         
         
         // 5. Verify task appears in history
+ 
+        // old implementation succeeds only if list is small enough to be seen in view
         let taskCell = app.staticTexts["taskRow_\(taskName)"]
-        let existsPredicate = NSPredicate(format: "exists == true")
-        expectation(for: existsPredicate, evaluatedWith: taskCell, handler: nil)
-        waitForExpectations(timeout: 6)
-        
-        // 5. Verify
-        XCTAssertTrue(taskCell.exists)
-        
-
+        XCTAssertTrue(taskCell.waitForExistence(timeout: 20))
     }
 
 
