@@ -117,6 +117,7 @@ struct AppView: View {
                                         
                                         
                                     }
+                                    
                                 }
                                 .padding(.horizontal)
                             }
@@ -134,7 +135,7 @@ struct AppView: View {
                             .padding(.horizontal)
                         }
                         
-                        StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer)
+//                        StartStopButtonsView(state: timerManager.state, start: timerManager.startTimer, pause: timerManager.pauseTimer, reset: timerManager.resetTimer, resume: timerManager.resumeTimer)
                         Spacer()
                         
                         // taskhistoryView
@@ -145,7 +146,23 @@ struct AppView: View {
                         .accessibilityIdentifier("taskHistoryLink")
                     }
                 }
+                
             }
+            
+        }
+        TabView {
+            Tab("History", systemImage: "tray.and.arrow.up.fill") {
+                TaskHistoryView(dataManager: dataManager)
+            }
+            
+            Tab("Profile", systemImage: "person.crop.circle.fill") {
+                ChartView()
+            }
+            
+            Tab("History", systemImage: "tray.and.arrow.up.fill") {
+                TaskHistoryView(dataManager: dataManager)
+            }
+            
         }
     }
     

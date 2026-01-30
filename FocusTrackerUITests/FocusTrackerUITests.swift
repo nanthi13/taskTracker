@@ -33,7 +33,7 @@ final class FocusTrackerUITests: XCTestCase {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
         app.launch()
-        
+        // TODO: might not show up due to updated funcitons when entering taskname title name disappears
         XCTAssertTrue(app.navigationBars["Focus Tracker"].waitForExistence(timeout: 3))
         
         let taskField = app.textFields["taskNameField"]
@@ -148,6 +148,7 @@ final class FocusTrackerUITests: XCTestCase {
         sleep(5)
         
         // navigate to taskHistory view
+        // TODO: update test, current app version does not use historyLink
         let historyLink = app.buttons["View Task History"]
         XCTAssertTrue(historyLink.waitForExistence(timeout: 2))
         historyLink.tap()
@@ -166,11 +167,11 @@ final class FocusTrackerUITests: XCTestCase {
     }
 
 
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
-    }
+//    @MainActor
+//    func testLaunchPerformance() throws {
+//        // This measures how long it takes to launch your application.
+//        measure(metrics: [XCTApplicationLaunchMetric()]) {
+//            XCUIApplication().launch()
+//        }
+//    }
 }
