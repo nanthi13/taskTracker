@@ -39,6 +39,7 @@ struct TaskHistoryView: View {
                 } label: {
                     Label("Clear All", systemImage: "trash")
                 }
+                .accessibilityIdentifier("clearAllButton")
                 .disabled(dataManager.tasks.isEmpty)
             }
         }

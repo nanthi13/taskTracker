@@ -145,10 +145,10 @@ final class FocusTrackerUITests: XCTestCase {
         // 2. Start the timer
         app.buttons["startButton"].firstMatch.tap()
         
-        // wait for 5 seconds
+        // 3. wait for 5 seconds
         sleep(5)
         
-        // navigate to taskHistory view
+        // 4. navigate to taskHistory view
         let historyTab = app.tabBars.buttons["History"]
         XCTAssertTrue(historyTab.waitForExistence(timeout: 2))
         historyTab.tap()
@@ -156,9 +156,34 @@ final class FocusTrackerUITests: XCTestCase {
         
         // 5. Verify task appears in history
  
-        // old implementation succeeds only if list is small enough to be seen in view
+        // implementation succeeds only if list is small enough to be seen in view
         let taskCell = app.staticTexts["taskRow_\(taskName)"]
         XCTAssertTrue(taskCell.waitForExistence(timeout: 20))
+        
+        // 6. Clear all tasks to prevent task clutter causing test to fail
+
+        
+    }
+    
+    func testDeleteTasks() {
+        // switch to history view
+        let historyTab = app.tabBars.buttons["History"]
+        XCTAssertTrue(historyTab.waitForExistence(timeout: 2))
+        historyTab.tap()
+        
+        // Clear all tasks to prevent task clutter causing test to fail
+        let clearButton = app.buttons["clearAllButton"]
+        XCTAssertTrue(clearButton.waitForExistence(timeout: 3))
+        clearButton.tap()
+        
+        // Confirm deletion in the alert
+        let deleteAllButton = app.alerts.buttons["Delete All"]
+        XCTAssertTrue(deleteAllButton.waitForExistence(timeout: 3))
+        deleteAllButton.tap()
+
+        // Verify list is empty
+        let emptyLabel = app.staticTexts["No tasks yet."]
+        XCTAssertTrue(emptyLabel.waitForExistence(timeout: 3))
     }
 
 
