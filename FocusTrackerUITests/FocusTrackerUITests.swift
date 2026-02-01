@@ -181,7 +181,29 @@ final class FocusTrackerUITests: XCTestCase {
         let emptyLabel = app.staticTexts["No tasks yet."]
         XCTAssertTrue(emptyLabel.waitForExistence(timeout: 3))
     }
-
+    
+    func testAddTask() {
+        let taskName = "testing print statement"
+    
+        
+        // 1. Enter task name
+        
+        let taskNameField = app.textFields["taskNameField"]
+        XCTAssertTrue(taskNameField.waitForExistence(timeout: 2))
+        taskNameField.tap()
+        taskNameField.typeText(taskName)
+        
+        // 2. Start the timer
+        app.buttons["startButton"].firstMatch.tap()
+        print("SHOULD BE HERE LOGGED")
+        // 3. wait for 5 seconds
+        sleep(5)
+        
+        // 4. navigate to taskHistory view
+        let historyTab = app.tabBars.buttons["History"]
+        XCTAssertTrue(historyTab.waitForExistence(timeout: 2))
+        historyTab.tap()
+    }
 
 //    @MainActor
 //    func testLaunchPerformance() throws {

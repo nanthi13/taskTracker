@@ -153,9 +153,9 @@ class TimerManager: ObservableObject {
     
     // helper
     private var currentDuration: Int {
-            if isUITesting { return 1 }
-            return mode == .focus ? focusDuration : breakDuration
-        }
+        if isUITesting { return 1 }
+        return mode == .focus ? focusDuration : breakDuration
+    }
     
     // alert sound
     private func playSystemSound() {
