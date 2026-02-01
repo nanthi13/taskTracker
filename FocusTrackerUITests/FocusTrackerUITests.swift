@@ -76,40 +76,53 @@ final class FocusTrackerUITests: XCTestCase {
         taskField.tap()
         taskField.typeText("Break Test Task")
         
-        // start focus timer
+        // start focus timer transition from idle -> focus mode
         let startButton = app.buttons["startButton"]
         XCTAssertTrue(startButton.exists)
         startButton.tap()
         
-        // verify focus timer starts
+        // verify focus mode starts
+        // confirms app has changed to focus mode
+        let modeLabel = app.staticTexts["timerModeLabel"]
+        XCTAssertTrue(modeLabel.waitForExistence(timeout: 3))
+        XCTAssertEqual(modeLabel.label, "Focus Time")
+
+        // timerlabel ehould exist when the focus session has started
         let timerLabel = app.staticTexts["timerTimeLabel"]
-        XCTAssertTrue(timerLabel.waitForExistence(timeout: 3))
+        XCTAssertTrue(timerLabel.exists)
         
-        // wait for timer to finish
-        sleep(5
+        // wait for app transition Focus -> Break mode
+        let enteredBreak = NSPredicate(format: "label == %@", "Break Time")
+            expectation(for: enteredBreak, evaluatedWith: modeLabel)
+            waitForExpectations(timeout: 10)
+        
+        // capture initial breaktimerValue
+        let breakTimeStart = timerLabel.label
+
+        // Wait until the timer label changes, proving the break timer is counting down
+        let timerChanged = NSPredicate { _, _ in
+            timerLabel.label != breakTimeStart
+        }
+
+        expectation(for: timerChanged, evaluatedWith: timerLabel)
+        waitForExpectations(timeout: 2)
+
+        
+        // Double-check that the timer value actually changed
+        let breakTimeAfter = timerLabel.label
+        XCTAssertNotEqual(
+            breakTimeStart,
+            breakTimeAfter,
+            "Break timer did not start counting down"
         )
-        // verify app switches to break mode
-        let breakTitle = app.staticTexts["Break Time"]
-        XCTAssertTrue(
-            breakTitle.waitForExistence(timeout: 3),
-            "App did not enter Break Mode")
         
-        let breakInitialValue = timerLabel.label
+        // Wait for break to finish and return to focus
+        // After the break finishes, the app should return to focus/idle state
+        let returnedToFocus = NSPredicate(format: "label == %@", "Focus Time")
+        expectation(for: returnedToFocus, evaluatedWith: modeLabel)
+        waitForExpectations(timeout: 10)
         
-        sleep(2)
-        // test failed
-        XCTAssertEqual(timerLabel.label, breakInitialValue, "Break timer did not start count down")
-        
-        // wait for break to finish
-        sleep(3)
-        
-        // Verify app returns to idle Focus state
-        // test fails due to break time not auto starting
-        // TODO: refactor timerManager and AppViiee to support auto start break timer
-        let focusTitle = app.staticTexts["Focus Time"]
-        XCTAssertTrue(focusTitle.waitForExistence(timeout: 3), "App did not return to focus time after break")
-        
-        // app enters idle state and makes timee pickers available
+        // app enters idle state and makes time pickers available
         XCTAssertTrue(app.pickers["focusPicker"].exists)
         XCTAssertTrue(app.pickers["breakPicker"].exists)
     }
