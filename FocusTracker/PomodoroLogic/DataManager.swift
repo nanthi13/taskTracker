@@ -73,4 +73,21 @@ class DataManager: ObservableObject {
         ]
         saveTasks()
     }
+    
+    // testFocusTaskIsLoggedInTaskHistory fails if this function is used instead of loadMockData
+    func loadMoreMockData() {
+        tasks = [
+            PomodoroTaskModel(name: "Design UI", duration: 1500, date: Date().addingTimeInterval(-3000)),
+            PomodoroTaskModel(name: "Finish Documentation", duration: 1200, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Clean up UI", duration: 1200, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Simplify code", duration: 1200, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "UI testing", duration: 1400, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "See if task is visible in test", duration: 1600, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Simplify code", duration: 1700, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Simplify code", duration: 1800, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Simplify code", duration: 1200, date: Date().addingTimeInterval(-6000))
+
+        ]
+        saveTasks()
+    }
 }
