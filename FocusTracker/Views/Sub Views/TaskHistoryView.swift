@@ -2,7 +2,6 @@
 
 import SwiftUI
 
-import SwiftUI
 struct TaskHistoryView: View {
     @ObservedObject var dataManager: DataManager
     @State private var showClearAlert = false
@@ -19,19 +18,19 @@ struct TaskHistoryView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(task.name)
                                 .font(.headline)
-                                .accessibilityIdentifier("taskRow_\(task.name)")
-                            
                             Text("Focused for \(timeString(from: task.duration)) on \(task.date.formatted(date: .abbreviated, time: .shortened))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("taskRow_\(task.name)")
                         .padding(.vertical, 4)
                     }
                     .onDelete(perform: deleteTask)
                 }
-                
             }
         }
+        .accessibilityIdentifier("taskHistoryList")
         .navigationTitle("Task History")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -40,6 +39,7 @@ struct TaskHistoryView: View {
                 } label: {
                     Label("Clear All", systemImage: "trash")
                 }
+                .accessibilityIdentifier("clearAllButton")
                 .disabled(dataManager.tasks.isEmpty)
             }
         }
