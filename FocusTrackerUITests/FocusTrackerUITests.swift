@@ -106,6 +106,10 @@ final class FocusTrackerUITests: XCTestCase {
     func testTaskIsSavedToHistory() {
         clearAllTasks()
         
+        // switch to home tab
+        let homeTab = app.tabBars.buttons["Home"]
+        homeTab.tap()
+        
         let taskName = "UI Test History Task"
         enterTask(name: taskName)
         startTimer()
