@@ -123,7 +123,17 @@ final class FocusTrackerUITests: XCTestCase {
         XCTAssertTrue(taskCell.waitForExistence(timeout: 5))
     }
     
+    // fails if launch args sets TimerManager too short
+    func testFocusTransitionToBreak() {
+        enterTask(name: "Mode Transition Test")
+        startTimer()
+        
+        waitForMode("Focus Time")
+        waitForMode("Break Time", timeout: 5)
+    }
     
+    
+    // tests too many things - REFACTor
     func testBreakTimerFlow() {
         // enter task name
         let taskField = app.textFields["taskNameField"]
