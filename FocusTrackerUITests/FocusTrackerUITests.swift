@@ -148,12 +148,17 @@ final class FocusTrackerUITests: XCTestCase {
     // tests changes to focus duration when selecting a time using the picker
     func testChangeFocusDuration() {
         let focusPicker = app.pickers["focusPicker"]
-        XCTAssertTrue(focusPicker.exists)
+        XCTAssertTrue(focusPicker.waitForExistence(timeout: 2))
         
         focusPicker.pickerWheels.element.adjust(toPickerWheelValue: "45 min")
         // TODO: Test fails sometimes
         let timerLabel = app.staticTexts["timerTimeLabel"]
-        XCTAssertEqual(timerLabel.label, "45:00")
+        let predicate = NSPredicate(format: "label == %@", "45:00")
+        
+        expectation(for: predicate, evaluatedWith: timerLabel)
+        // fails sometimes sets time to 44 min
+        waitForExpectations(timeout: 10)
+        //        XCTAssertEqual(timerLabel.label, "45:00")
     }
     
     func testDeleteTasks() {
