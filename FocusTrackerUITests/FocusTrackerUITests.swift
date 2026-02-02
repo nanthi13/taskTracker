@@ -42,33 +42,45 @@ final class FocusTrackerUITests: XCTestCase {
         XCTAssertEqual(taskField.value as? String, "Reading")
     }
     
+    // helpers
+    
+    // create a task
+    func enterTask(name: String ) {
+        let taskField = app.textFields["taskNameField"]
+        XCTAssertTrue(taskField.waitForExistence(timeout: 2))
+        taskField.tap()
+        taskField.typeText(name)
+        XCUIApplication().keyboards.buttons["Return"].tap()
+    }
+    
+    // hit start button
+    func startTimer() {
+        let startButton = app.buttons["startButton"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 2))
+        startButton.tap()
+    }
+    
     
     func testStartFocusTimer() {
         
-        let taskField = app.textFields["taskNameField"]
-        XCTAssertTrue(taskField.exists)
-        
-        taskField.tap()
-        taskField.typeText("Study SwiftUI")
-        XCUIApplication().keyboards.buttons["Return"].tap()
-
-        let startButton = app.buttons["startButton"]
-        XCTAssertTrue(startButton.exists)
-        
-        startButton.tap()
+        enterTask(name: "testing focus timer")
+        startTimer()
         
         let timerLabel = app.staticTexts["timerTimeLabel"]
-        XCTAssertTrue(timerLabel.exists)
+        XCTAssertTrue(timerLabel.waitForExistence(timeout: 2))
         
         // Timer should start counting down
         let initialValue = timerLabel.label
         let predicate = NSPredicate(format: "label != %@", initialValue)
-        let expectation = expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
         
-        wait(for: [expectation], timeout: 5) // max 5 seconds
+        expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
+        waitForExpectations(timeout: 5)
+//        let expectation = expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
+//        
+//        wait(for: [expectation], timeout: 5) // max 5 seconds
     }
     
-    //TODO: complete test
+    
     func testBreakTimerFlow() {
         // enter task name
         let taskField = app.textFields["taskNameField"]
@@ -135,7 +147,7 @@ final class FocusTrackerUITests: XCTestCase {
         XCTAssertTrue(focusPicker.exists)
         
         focusPicker.pickerWheels.element.adjust(toPickerWheelValue: "45 min")
-        
+        // TODO: Test fails sometimes
         let timerLabel = app.staticTexts["timerTimeLabel"]
         XCTAssertEqual(timerLabel.label, "45:00")
     }
@@ -197,6 +209,7 @@ final class FocusTrackerUITests: XCTestCase {
     
     func testAddTask() {
         let taskName = "testing print statement"
+        // to see print statements when testing place breakpoint
     
         
         // 1. Enter task name
