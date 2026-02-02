@@ -60,6 +60,29 @@ final class FocusTrackerUITests: XCTestCase {
         startButton.tap()
     }
     
+    func clearAllTasks() {
+        let historyTab = app.tabBars.buttons["History"]
+        guard historyTab.exists else { return }
+        
+        historyTab.tap()
+        
+        let clearButton = app.buttons["clearAllButton"]
+        guard clearButton.exists else { return }
+    
+        clearButton.tap()
+        app.alerts.buttons["Delete All"].tap()
+        
+    }
+    
+    func waitForMode(_ mode: String, timeout: TimeInterval = 10) {
+        let modeLabel = app.staticTexts["timerModeLabel"]
+        XCTAssertTrue(modeLabel.waitForExistence(timeout: 2))
+
+        let predicate = NSPredicate(format: "label == %@", mode)
+        expectation(for: predicate, evaluatedWith: modeLabel)
+        waitForExpectations(timeout: timeout)
+    }
+    
     
     func testStartFocusTimer() {
         
@@ -78,6 +101,22 @@ final class FocusTrackerUITests: XCTestCase {
 //        let expectation = expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
 //        
 //        wait(for: [expectation], timeout: 5) // max 5 seconds
+    }
+    
+    func testTaskIsSavedToHistory() {
+        clearAllTasks()
+        
+        let taskName = "UI Test History Task"
+        enterTask(name: taskName)
+        startTimer()
+        
+        sleep(5)
+        let historyTab = app.tabBars.buttons["History"]
+        XCTAssertTrue(historyTab.waitForExistence(timeout: 2))
+        historyTab.tap()
+        
+        let taskCell = app.staticTexts["taskRow_\(taskName)"]
+        XCTAssertTrue(taskCell.waitForExistence(timeout: 5))
     }
     
     
@@ -150,40 +189,6 @@ final class FocusTrackerUITests: XCTestCase {
         // TODO: Test fails sometimes
         let timerLabel = app.staticTexts["timerTimeLabel"]
         XCTAssertEqual(timerLabel.label, "45:00")
-    }
-    
-    func testFocusTaskIsLoggedInTaskHistory() {
-        
-        let taskName = "Testing UI focus task log"
-    
-        
-        // 1. Enter task name
-        
-        let taskNameField = app.textFields["taskNameField"]
-        XCTAssertTrue(taskNameField.waitForExistence(timeout: 2))
-        taskNameField.tap()
-        taskNameField.typeText(taskName)
-        
-        // 2. Start the timer
-        app.buttons["startButton"].firstMatch.tap()
-        
-        // 3. wait for 5 seconds
-        sleep(5)
-        
-        // 4. navigate to taskHistory view
-        let historyTab = app.tabBars.buttons["History"]
-        XCTAssertTrue(historyTab.waitForExistence(timeout: 2))
-        historyTab.tap()
-        
-        
-        // 5. Verify task appears in history
- 
-        // implementation succeeds only if list is small enough to be seen in view
-        let taskCell = app.staticTexts["taskRow_\(taskName)"]
-        XCTAssertTrue(taskCell.waitForExistence(timeout: 5))
-        
-        // 6. Clear all tasks to prevent task clutter causing test to fail
-        testDeleteTasks()
     }
     
     func testDeleteTasks() {
