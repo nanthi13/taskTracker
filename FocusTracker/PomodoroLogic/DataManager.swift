@@ -66,10 +66,10 @@ class DataManager: ObservableObject {
     
     func loadMockData() {
         tasks = [
-            PomodoroTaskModel(name: "Design UI", duration: 1500, date: Date().addingTimeInterval(-3000)),
-            PomodoroTaskModel(name: "Finish Documentation", duration: 1200, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Clean up UI", duration: 1200, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Simplify code", duration: 1200, date: Date().addingTimeInterval(-6000))
+            PomodoroTaskModel(name: "Design UI", duration: 600, date: Date().addingTimeInterval(-3000)),
+            PomodoroTaskModel(name: "Finish Documentation", duration: 600, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Clean up UI", duration: 600, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Simplify code", duration: 600, date: Date().addingTimeInterval(-6000))
         ]
         saveTasks()
     }

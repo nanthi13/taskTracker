@@ -40,6 +40,13 @@ struct AppViewCopy: View {
             .tag(AppTab.home)
             
             NavigationStack {
+                ChartView(dataManager: dataManager)
+            }
+            .tabItem {
+                Label("Charts", systemImage: "chart.bar.fill")
+            }
+            
+            NavigationStack {
                 TaskHistoryView(dataManager: dataManager)
             }
             .tabItem {
@@ -49,7 +56,7 @@ struct AppViewCopy: View {
             
             // PROFILE TAB
             NavigationStack {
-                ChartView()
+                ChartView(dataManager: dataManager)
             }
             .tabItem {
                 Label("Profile", systemImage: "person.crop.circle.fill")
@@ -68,5 +75,5 @@ struct AppViewCopy: View {
 
 
 #Preview {
-    AppView()
+    AppViewCopy()
 }

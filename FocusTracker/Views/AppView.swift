@@ -156,7 +156,7 @@ struct AppView: View {
             }
             
             Tab("Profile", systemImage: "person.crop.circle.fill") {
-                ChartView()
+//                ChartView()
             }
             
             Tab("History", systemImage: "tray.and.arrow.up.fill") {
