@@ -153,7 +153,7 @@ class TimerManager: ObservableObject {
     
     // helper
     private var currentDuration: Int {
-        if isUITesting { return 1 }
+        if isUITesting { return 6 }
         return mode == .focus ? focusDuration : breakDuration
     }
     

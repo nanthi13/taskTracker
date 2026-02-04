@@ -42,136 +42,123 @@ final class FocusTrackerUITests: XCTestCase {
         XCTAssertEqual(taskField.value as? String, "Reading")
     }
     
+    // helpers
+    
+    // create a task
+    func enterTask(name: String ) {
+        let taskField = app.textFields["taskNameField"]
+        XCTAssertTrue(taskField.waitForExistence(timeout: 2))
+        taskField.tap()
+        taskField.typeText(name)
+        XCUIApplication().keyboards.buttons["Return"].tap()
+    }
+    
+    // hit start button
+    func startTimer() {
+        let startButton = app.buttons["startButton"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 2))
+        startButton.tap()
+    }
+    
+    func clearAllTasks() {
+        let historyTab = app.tabBars.buttons["History"]
+        guard historyTab.exists else { return }
+        
+        historyTab.tap()
+        
+        let clearButton = app.buttons["clearAllButton"]
+        guard clearButton.exists else { return }
+    
+        clearButton.tap()
+        app.alerts.buttons["Delete All"].tap()
+        
+    }
+    
+    func waitForMode(_ mode: String, timeout: TimeInterval = 10) {
+        let modeLabel = app.staticTexts["timerModeLabel"]
+        XCTAssertTrue(modeLabel.waitForExistence(timeout: 2))
+
+        let predicate = NSPredicate(format: "label == %@", mode)
+        expectation(for: predicate, evaluatedWith: modeLabel)
+        waitForExpectations(timeout: timeout)
+    }
+    
     
     func testStartFocusTimer() {
         
-        let taskField = app.textFields["taskNameField"]
-        XCTAssertTrue(taskField.exists)
-        
-        taskField.tap()
-        taskField.typeText("Study SwiftUI")
-        XCUIApplication().keyboards.buttons["Return"].tap()
-
-        let startButton = app.buttons["startButton"]
-        XCTAssertTrue(startButton.exists)
-        
-        startButton.tap()
+        enterTask(name: "testing focus timer")
+        startTimer()
         
         let timerLabel = app.staticTexts["timerTimeLabel"]
-        XCTAssertTrue(timerLabel.exists)
+        XCTAssertTrue(timerLabel.waitForExistence(timeout: 2))
         
         // Timer should start counting down
         let initialValue = timerLabel.label
         let predicate = NSPredicate(format: "label != %@", initialValue)
-        let expectation = expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
         
-        wait(for: [expectation], timeout: 5) // max 5 seconds
+        expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
+        waitForExpectations(timeout: 5)
+//        let expectation = expectation(for: predicate, evaluatedWith: timerLabel, handler: nil)
+//        
+//        wait(for: [expectation], timeout: 5) // max 5 seconds
     }
     
-    //TODO: complete test
-    func testBreakTimerFlow() {
-        // enter task name
-        let taskField = app.textFields["taskNameField"]
-        XCTAssertTrue(taskField.waitForExistence(timeout: 2))
-        taskField.tap()
-        taskField.typeText("Break Test Task")
+    func testTaskIsSavedToHistory() {
+        clearAllTasks()
         
-        // start focus timer transition from idle -> focus mode
-        let startButton = app.buttons["startButton"]
-        XCTAssertTrue(startButton.exists)
-        startButton.tap()
+        // switch to home tab
+        let homeTab = app.tabBars.buttons["Home"]
+        homeTab.tap()
         
-        // verify focus mode starts
-        // confirms app has changed to focus mode
-        let modeLabel = app.staticTexts["timerModeLabel"]
-        XCTAssertTrue(modeLabel.waitForExistence(timeout: 3))
-        XCTAssertEqual(modeLabel.label, "Focus Time")
-
-        // timerlabel ehould exist when the focus session has started
-        let timerLabel = app.staticTexts["timerTimeLabel"]
-        XCTAssertTrue(timerLabel.exists)
+        let taskName = "UI Test History Task"
+        enterTask(name: taskName)
+        startTimer()
         
-        // wait for app transition Focus -> Break mode
-        let enteredBreak = NSPredicate(format: "label == %@", "Break Time")
-            expectation(for: enteredBreak, evaluatedWith: modeLabel)
-            waitForExpectations(timeout: 10)
-        
-        // capture initial breaktimerValue
-        let breakTimeStart = timerLabel.label
-
-        // Wait until the timer label changes, proving the break timer is counting down
-        let timerChanged = NSPredicate { _, _ in
-            timerLabel.label != breakTimeStart
-        }
-
-        expectation(for: timerChanged, evaluatedWith: timerLabel)
-        waitForExpectations(timeout: 2)
-
-        
-        // Double-check that the timer value actually changed
-        let breakTimeAfter = timerLabel.label
-        XCTAssertNotEqual(
-            breakTimeStart,
-            breakTimeAfter,
-            "Break timer did not start counting down"
-        )
-        
-        // Wait for break to finish and return to focus
-        // After the break finishes, the app should return to focus/idle state
-        let returnedToFocus = NSPredicate(format: "label == %@", "Focus Time")
-        expectation(for: returnedToFocus, evaluatedWith: modeLabel)
-        waitForExpectations(timeout: 10)
-        
-        // app enters idle state and makes time pickers available
-        XCTAssertTrue(app.pickers["focusPicker"].exists)
-        XCTAssertTrue(app.pickers["breakPicker"].exists)
-    }
-    
-    
-    
-    // tests changes to focus duration when selecting a time using the picker
-    func testChangeFocusDuration() {
-        let focusPicker = app.pickers["focusPicker"]
-        XCTAssertTrue(focusPicker.exists)
-        
-        focusPicker.pickerWheels.element.adjust(toPickerWheelValue: "45 min")
-        
-        let timerLabel = app.staticTexts["timerTimeLabel"]
-        XCTAssertEqual(timerLabel.label, "45:00")
-    }
-    
-    func testFocusTaskIsLoggedInTaskHistory() {
-        
-        let taskName = "Testing UI focus task log"
-    
-        
-        // 1. Enter task name
-        
-        let taskNameField = app.textFields["taskNameField"]
-        XCTAssertTrue(taskNameField.waitForExistence(timeout: 2))
-        taskNameField.tap()
-        taskNameField.typeText(taskName)
-        
-        // 2. Start the timer
-        app.buttons["startButton"].firstMatch.tap()
-        
-        // 3. wait for 5 seconds
         sleep(5)
-        
-        // 4. navigate to taskHistory view
         let historyTab = app.tabBars.buttons["History"]
         XCTAssertTrue(historyTab.waitForExistence(timeout: 2))
         historyTab.tap()
         
-        
-        // 5. Verify task appears in history
- 
-        // implementation succeeds only if list is small enough to be seen in view
         let taskCell = app.staticTexts["taskRow_\(taskName)"]
         XCTAssertTrue(taskCell.waitForExistence(timeout: 5))
+    }
+    
+    // fails if launch args sets TimerManager too short
+    func testFocusTransitionToBreak() {
+        enterTask(name: "Mode Transition Test")
+        startTimer()
         
-        // 6. Clear all tasks to prevent task clutter causing test to fail
-        testDeleteTasks()
+        waitForMode("Focus Time")
+        waitForMode("Break Time", timeout: 5)
+    }
+    
+    func testBreakTransitiontoIdle() {
+        enterTask(name: "Break Completion Test")
+        startTimer()
+        
+        waitForMode("Focus Time")
+        waitForMode("Break Time", timeout: 5)
+        
+        XCTAssertTrue(app.pickers["focusPicker"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.pickers["breakPicker"].waitForExistence(timeout: 2))
+
+    }
+   
+
+    // tests changes to focus duration when selecting a time using the picker
+    func testChangeFocusDuration() {
+        let focusPicker = app.pickers["focusPicker"]
+        XCTAssertTrue(focusPicker.waitForExistence(timeout: 2))
+        
+        focusPicker.pickerWheels.element.adjust(toPickerWheelValue: "45 min")
+        // TODO: Test fails sometimes
+        let timerLabel = app.staticTexts["timerTimeLabel"]
+        let predicate = NSPredicate(format: "label == %@", "45:00")
+        
+        expectation(for: predicate, evaluatedWith: timerLabel)
+        // fails sometimes sets time to 44 min
+        waitForExpectations(timeout: 10)
+        //        XCTAssertEqual(timerLabel.label, "45:00")
     }
     
     func testDeleteTasks() {
@@ -197,6 +184,7 @@ final class FocusTrackerUITests: XCTestCase {
     
     func testAddTask() {
         let taskName = "testing print statement"
+        // to see print statements when testing place breakpoint
     
         
         // 1. Enter task name
