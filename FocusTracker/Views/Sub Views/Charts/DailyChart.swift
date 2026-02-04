@@ -1,10 +1,9 @@
-//CREATED  BY: nanthi13 ON 29/01/2026
+//CREATED  BY: nanthi13 ON 04/02/2026
 
 import SwiftUI
 import Charts
 
-struct ChartView: View {
-    
+struct DailyChart: View {
     @ObservedObject var dataManager: DataManager
 
     var body: some View {
@@ -20,8 +19,8 @@ struct ChartView: View {
     }
 }
 
+
 #Preview {
-    var dataManager = DataManager()
-    
-    ChartView(dataManager: dataManager)
+    let dataManager = DataManager()
+    DailyChart(dataManager: dataManager)
 }
