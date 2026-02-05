@@ -56,7 +56,7 @@ struct AppViewCopy: View {
             
             // PROFILE TAB
             NavigationStack {
-                ChartView(dataManager: dataManager)
+                AnalyticsDashboardView(tasks: dataManager.tasks)
             }
             .tabItem {
                 Label("Profile", systemImage: "person.crop.circle.fill")
