@@ -6,7 +6,7 @@ import Charts
 struct FocusChartCard: View {
     let title: String
     let data: [FocusAnalyticsPoint]
-    let dateStride: Calendar.Component
+    let granularity: ChartGranularity
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -21,10 +21,15 @@ struct FocusChartCard: View {
                 .cornerRadius(4)
             }
             .chartXAxis {
-                AxisMarks(values: .stride(by: dateStride)) { value in
+                AxisMarks { value in
                     AxisValueLabel {
                         if let date = value.as(Date.self) {
-                            Text(date, format: .dateTime.weekday(.abbreviated))
+                            switch granularity {
+                            case .daily:
+                                Text(date, format: .dateTime.weekday(.abbreviated))
+                            case .weekly:
+                                Text(date, format: .dateTime.month().day())
+                            }
                         }
                     }
                 }
