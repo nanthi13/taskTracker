@@ -10,7 +10,7 @@ extension Array where Element == PomodoroTaskModel {
         
         return grouped.map { date, tasks in
             FocusAnalyticsPoint(date: date, totalMinutes: tasks.reduce(0) {
-                $0 + $1.duration}
+                $0 + ($1.duration / 60)}
             )
         }
         .sorted { $0.date < $1.date}
@@ -23,7 +23,7 @@ extension Array where Element == PomodoroTaskModel {
         
         return grouped.map { weekStart, tasks in
             FocusAnalyticsPoint(date: weekStart, totalMinutes: tasks.reduce(0)
-                                { $0 + $1.duration}
+                                { $0 + ($1.duration / 60) }
             )
         }
         .sorted { $0.date < $1.date}
