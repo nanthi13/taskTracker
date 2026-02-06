@@ -7,13 +7,16 @@ struct FocusChartCard: View {
     let title: String
     let data: [FocusAnalyticsPoint]
     let granularity: ChartGranularity
+    let onTap: () -> Void
+    
+    @State private var animatedData: [FocusAnalyticsPoint] = []
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.headline)
             
-            Chart(data) { point in
+            Chart(animatedData) { point in
                 BarMark(
                     x: .value("Date", point.date),
                     y: .value("Minutes", point.totalMinutes)
@@ -40,6 +43,15 @@ struct FocusChartCard: View {
         .padding()
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 16))
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .onTapGesture {
+            onTap()
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.8)) {
+                animatedData = data
+            }
+        }
     }
     
 }

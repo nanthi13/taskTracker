@@ -3,6 +3,8 @@
 import SwiftUI
 
 struct AnalyticsDashboardView: View {
+    @State private var path = NavigationPath()
+
     let tasks: [PomodoroTaskModel]
     
     var dailyData: [FocusAnalyticsPoint] {
@@ -14,28 +16,51 @@ struct AnalyticsDashboardView: View {
     }
     
     var body: some View {
-        Group {
-            if tasks.isEmpty {
-                ContentUnavailableView(
-                    "No Focus Data Yet",
-                    systemImage: "chart.bar",
-                    description: Text("Complete a Pomodoro to see your analytics.")
-                )
-                
-                
-            } else {
-                ScrollView {
-                    VStack(spacing: 16) {
-                        FocusChartCard(
-                            title: "Daily Focus", data: Array(dailyData), dateStride: .day)
-                        
-                        FocusChartCard(title: "Weekly Focus", data: Array(weeklyData), dateStride: .weekOfYear)
+        NavigationStack(path: $path) {
+            Group {
+                if tasks.isEmpty {
+                    ContentUnavailableView(
+                        "No Focus Data Yet",
+                        systemImage: "chart.bar",
+                        description: Text("Complete a Pomodoro to see your analytics.")
+                    )
+                    
+                    
+                } else {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            FocusChartCard(
+                                title: "Daily Focus", data: Array(dailyData), granularity: .daily ) { path.append(ChartGranularity.daily)
+                                }
+                            
+                            FocusChartCard(title: "Weekly Focus", data: Array(weeklyData), granularity: .weekly) {
+                                path.append(ChartGranularity.weekly)
+                            }
+                        }
+                        .padding()
                     }
-                    .padding()
                 }
             }
+            .navigationTitle("Analytics")
+            .navigationDestination(for: ChartGranularity.self) { granularity in
+                switch granularity {
+                case .daily:
+                    FocusDetailChartView(
+                        title: "Daily Focus",
+                        data: Array(dailyData),
+                        granularity: .daily
+                    )
+                    
+                case .weekly:
+                    FocusDetailChartView(
+                        title: "Weekly Focus",
+                        data: Array(weeklyData),
+                        granularity: .weekly
+                    )
+                }
+            }
+            
         }
-        .navigationTitle("Analytics")
     }
 }
 
