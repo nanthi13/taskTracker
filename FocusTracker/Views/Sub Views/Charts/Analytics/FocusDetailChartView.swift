@@ -8,8 +8,10 @@ struct FocusDetailChartView: View {
     let title: String
     let data: [FocusAnalyticsPoint]
     let granularity: ChartGranularity
+    let tasks: [PomodoroTaskModel]
 
     @State private var selectedPoint: FocusAnalyticsPoint?
+    @State private var selectedTask: PomodoroTaskModel?
 
     var body: some View {
         VStack(spacing: 16) {
@@ -64,6 +66,12 @@ struct FocusDetailChartView: View {
                                     let location = value.location
                                     if let date: Date = proxy.value(atX: location.x) {
                                         selectedPoint = closestPoint(to: date)
+                                        // map the selected analytics point to a concrete task (most recent on that date/week)
+                                        if let selected = selectedPoint {
+                                            selectedTask = taskFor(analyticsPoint: selected)
+                                        } else {
+                                            selectedTask = nil
+                                        }
                                     }
                                 }
                         )
@@ -74,6 +82,32 @@ struct FocusDetailChartView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        // Overlay the TaskDetailView when a concrete task is selected
+        .overlay {
+            if let task = selectedTask {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation {
+                            selectedTask = nil
+                        }
+                    }
+                    .transition(.opacity)
+
+                VStack {
+                    Spacer()
+                    TaskDetailView(task: task, onClose: {
+                        withAnimation {
+                            selectedTask = nil
+                        }
+                    })
+                    Spacer()
+                }
+                .padding()
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .zIndex(2)
+            }
+        }
     }
 
     // MARK: - Helpers
@@ -91,6 +125,21 @@ struct FocusDetailChartView: View {
         data.min {
             abs($0.date.timeIntervalSince(date)) <
             abs($1.date.timeIntervalSince(date))
+        }
+    }
+
+    private func taskFor(analyticsPoint: FocusAnalyticsPoint) -> PomodoroTaskModel? {
+        let calendar = Calendar.current
+        switch granularity {
+        case .daily:
+            let candidates = tasks.filter { calendar.isDate($0.date, inSameDayAs: analyticsPoint.date) }
+            return candidates.max(by: { $0.date < $1.date })
+        case .weekly:
+            let candidates = tasks.filter {
+                let start = calendar.dateInterval(of: .weekOfYear, for: $0.date)?.start ?? $0.date
+                return Calendar.current.isDate(start, inSameDayAs: analyticsPoint.date)
+            }
+            return candidates.max(by: { $0.date < $1.date })
         }
     }
 }

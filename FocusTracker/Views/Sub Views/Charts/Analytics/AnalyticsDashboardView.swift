@@ -48,14 +48,16 @@ struct AnalyticsDashboardView: View {
                     FocusDetailChartView(
                         title: "Daily Focus",
                         data: Array(dailyData),
-                        granularity: .daily
+                        granularity: .daily,
+                        tasks: tasks
                     )
                     
                 case .weekly:
                     FocusDetailChartView(
                         title: "Weekly Focus",
                         data: Array(weeklyData),
-                        granularity: .weekly
+                        granularity: .weekly,
+                        tasks: tasks
                     )
                 }
             }
