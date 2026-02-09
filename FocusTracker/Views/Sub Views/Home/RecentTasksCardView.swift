@@ -6,6 +6,7 @@ struct RecentTasksCardView: View {
 
     @ObservedObject var dataManager: DataManager
     @Binding var selectedTab: AppTab
+    @State private var selectedTask: PomodoroTaskModel? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -13,7 +14,7 @@ struct RecentTasksCardView: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal)
-                
+
 
             if dataManager.tasks.isEmpty {
                 Text("No tasks yet.")
@@ -41,9 +42,9 @@ struct RecentTasksCardView: View {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.gray.opacity(0.1))
                     )
+                    .contentShape(Rectangle())
                     .onTapGesture {
-                        // Navigate to full history
-                        selectedTab = .history
+                        selectedTask = task
                     }
                 }
 
@@ -57,6 +58,9 @@ struct RecentTasksCardView: View {
             }
         }
         .padding(.horizontal)
+        // Present TaskDetailView as a sheet instead of overlay
+        .taskDetailSheet(selectedTask: $selectedTask)
+
     }
 
     // Helper

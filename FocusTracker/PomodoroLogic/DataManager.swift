@@ -19,7 +19,7 @@ class DataManager: ObservableObject {
         
         #if DEBUG
         if tasks.isEmpty {
-            loadMockData()
+            loadMockDataWithDate()
         }
         #endif
     }
@@ -66,27 +66,32 @@ class DataManager: ObservableObject {
     
     func loadMockData() {
         tasks = [
-            PomodoroTaskModel(name: "Design UI", duration: 1500, date: Date().addingTimeInterval(-3000)),
-            PomodoroTaskModel(name: "Finish Documentation", duration: 1200, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Clean up UI", duration: 1200, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Simplify code", duration: 1200, date: Date().addingTimeInterval(-6000))
+            PomodoroTaskModel(name: "Design UI", duration: 600, date: Date().addingTimeInterval(-3000)),
+            PomodoroTaskModel(name: "Finish Documentation", duration: 600, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Clean up UI", duration: 600, date: Date().addingTimeInterval(-6000)),
+            PomodoroTaskModel(name: "Simplify code", duration: 600, date: Date().addingTimeInterval(-6000))
         ]
         saveTasks()
     }
     
     // testFocusTaskIsLoggedInTaskHistory fails if this function is used instead of loadMockData
-    func loadMoreMockData() {
+    func loadMockDataWithDate() {
         tasks = [
-            PomodoroTaskModel(name: "Design UI", duration: 1500, date: Date().addingTimeInterval(-3000)),
-            PomodoroTaskModel(name: "Finish Documentation", duration: 1200, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Clean up UI", duration: 1200, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Simplify code", duration: 1200, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "UI testing", duration: 1400, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "See if task is visible in test", duration: 1600, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Simplify code", duration: 1700, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Simplify code", duration: 1800, date: Date().addingTimeInterval(-6000)),
-            PomodoroTaskModel(name: "Simplify code", duration: 1200, date: Date().addingTimeInterval(-6000))
-
+            PomodoroTaskModel(name: "Design UI", duration: 600, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 24))!),
+            PomodoroTaskModel(name: "Finish Documentation", duration: 600, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 25))!),
+            PomodoroTaskModel(name: "Clean up UI", duration: 600, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 26))!),
+            PomodoroTaskModel(name: "Simplify code", duration: 600, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 27))!),
+            PomodoroTaskModel(name: "Design UI", duration: 1500, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 28))!),
+            PomodoroTaskModel(name: "Finish Documentation", duration: 1200, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 29))!),
+            PomodoroTaskModel(name: "Clean up UI", duration: 1200, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 30))!),
+            PomodoroTaskModel(name: "Simplify code", duration: 1200, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 31))!),
+            PomodoroTaskModel(name: "UI testing", duration: 1400, date: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 5))!),
+            PomodoroTaskModel(name: "See if task is visible in test", duration: 1600, date: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 4))!),
+            PomodoroTaskModel(name: "Simplify code", duration: 1700, date: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 1))!),
+            PomodoroTaskModel(name: "Simplify code", duration: 1800, date:
+                                Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 2))!),
+            PomodoroTaskModel(name: "Design UI", duration: 600,date: Calendar.current.date(from: DateComponents(year: 2026, month: 2, day: 3))!
+            )
         ]
         saveTasks()
     }

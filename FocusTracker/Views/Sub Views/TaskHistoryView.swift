@@ -5,7 +5,8 @@ import SwiftUI
 struct TaskHistoryView: View {
     @ObservedObject var dataManager: DataManager
     @State private var showClearAlert = false
-    
+    @State private var selectedTask: PomodoroTaskModel? = nil
+
     var body: some View {
         List {
             Section(header: Text("Previous Tasks")) {
@@ -25,6 +26,10 @@ struct TaskHistoryView: View {
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("taskRow_\(task.name)")
                         .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedTask = task
+                        }
                     }
                     .onDelete(perform: deleteTask)
                 }
@@ -47,19 +52,22 @@ struct TaskHistoryView: View {
             Button("Delete All", role: .destructive) {
                 dataManager.clearAllTasks()
             }
-            
+
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("This action cannot be undone.")
         }
+        // Present the TaskDetailView as a sheet instead of overlay
+        .taskDetailSheet(selectedTask: $selectedTask)
+
     }
-    
+
     func timeString(from seconds: Int) -> String {
         let m = seconds / 60
         let s = seconds % 60
         return String(format: "%02d:%02d", m, s)
     }
-    
+
     func deleteTask(at offsets: IndexSet) {
         dataManager.removeTask(at: offsets)
     }

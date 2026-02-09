@@ -6,7 +6,7 @@ import SwiftUI
 struct FocusTrackerApp: App {
     var body: some Scene {
         WindowGroup {
-            AppViewCopy()
+            AppView()
         }
     }
 }
