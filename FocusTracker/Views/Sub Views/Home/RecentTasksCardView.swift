@@ -59,13 +59,8 @@ struct RecentTasksCardView: View {
         }
         .padding(.horizontal)
         // Present TaskDetailView as a sheet instead of overlay
-        .sheet(item: $selectedTask) { task in
-            TaskDetailView(task: task, onClose: {
-                selectedTask = nil
-            })
-            .presentationDetents([.fraction(0.45)])
-            .presentationDragIndicator(.visible)
-        }
+        .taskDetailSheet(selectedTask: $selectedTask)
+
     }
 
     // Helper

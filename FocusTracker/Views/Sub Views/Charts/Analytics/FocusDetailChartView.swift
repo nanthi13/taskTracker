@@ -83,14 +83,7 @@ struct FocusDetailChartView: View {
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         // Present TaskDetailView as a sheet when a concrete task is selected
-        .sheet(item: $selectedTask) { task in
-            // Provide the same onClose behavior so the close button inside the sheet dismisses it
-            TaskDetailView(task: task, onClose: {
-                selectedTask = nil
-            })
-            .presentationDetents([.fraction(0.45)])
-            .presentationDragIndicator(.visible)
-        }
+        .taskDetailSheet(selectedTask: $selectedTask)
     }
 
     // MARK: - Helpers
