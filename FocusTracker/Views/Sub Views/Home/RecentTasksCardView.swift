@@ -63,6 +63,8 @@ struct RecentTasksCardView: View {
             TaskDetailView(task: task, onClose: {
                 selectedTask = nil
             })
+            .presentationDetents([.fraction(0.45)])
+            .presentationDragIndicator(.visible)
         }
     }
 
