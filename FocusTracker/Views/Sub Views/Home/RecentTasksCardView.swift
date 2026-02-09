@@ -9,95 +9,70 @@ struct RecentTasksCardView: View {
     @State private var selectedTask: PomodoroTaskModel? = nil
 
     var body: some View {
-        ZStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Recent Tasks")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.horizontal)
-                    
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Recent Tasks")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.horizontal)
 
-                if dataManager.tasks.isEmpty {
-                    Text("No tasks yet.")
-                        .foregroundColor(.gray)
-                        .padding()
-                } else {
-                    // Show up to 3 most recent tasks
-                    ForEach(dataManager.tasks.sorted(by: { $0.date > $1.date }).prefix(3)) { task in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(task.name)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                Text("Focused for \(timeString(from: task.duration))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text(task.date, style: .date)
-                                .font(.caption2)
+
+            if dataManager.tasks.isEmpty {
+                Text("No tasks yet.")
+                    .foregroundColor(.gray)
+                    .padding()
+            } else {
+                // Show up to 3 most recent tasks
+                ForEach(dataManager.tasks.sorted(by: { $0.date > $1.date }).prefix(3)) { task in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(task.name)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Text("Focused for \(timeString(from: task.duration))")
+                                .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.gray.opacity(0.1))
-                        )
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            // Show task detail card
-                            withAnimation {
-                                selectedTask = task
-                            }
-                        }
+                        Spacer()
+                        Text(task.date, style: .date)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
-
-                    // Optional "See All" button
-                    Button("See All") {
-                        selectedTab = .history
-                    }
-                    .font(.caption)
-                    .padding(.horizontal)
-                    .padding(.top, 4)
-                }
-            }
-            .padding(.horizontal)
-                
-            // Overlay the detail card when a task is selected
-            if let selected = selectedTask {
-                Color.black.opacity(0.35)
-                    .ignoresSafeArea()
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.gray.opacity(0.1))
+                    )
+                    .contentShape(Rectangle())
                     .onTapGesture {
-                        withAnimation {
-                            selectedTask = nil
-                        }
+                        selectedTask = task
                     }
-                    .transition(.opacity)
-                    .zIndex(1)
-
-                VStack {
-                    Spacer()
-                    TaskDetailView(task: selected, onClose: {
-                        withAnimation {
-                            selectedTask = nil
-                        }
-                    })
-                    Spacer()
                 }
-                .padding()
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .zIndex(2)
-            }
-         }
-     }
 
-     // Helper
-     func timeString(from seconds: Int) -> String {
-         let minutes = seconds / 60
-         let seconds = seconds % 60
-         return String(format: "%02d:%02d", minutes, seconds)
-     }
- }
+                // Optional "See All" button
+                Button("See All") {
+                    selectedTab = .history
+                }
+                .font(.caption)
+                .padding(.horizontal)
+                .padding(.top, 4)
+            }
+        }
+        .padding(.horizontal)
+        // Present TaskDetailView as a sheet instead of overlay
+        .sheet(item: $selectedTask) { task in
+            TaskDetailView(task: task, onClose: {
+                selectedTask = nil
+            })
+        }
+    }
+
+    // Helper
+    func timeString(from seconds: Int) -> String {
+        let minutes = seconds / 60
+        let seconds = seconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
 
 #Preview {
 //    RecentTasksCardView()

@@ -82,31 +82,12 @@ struct FocusDetailChartView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        // Overlay the TaskDetailView when a concrete task is selected
-        .overlay {
-            if let task = selectedTask {
-                Color.black.opacity(0.35)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation {
-                            selectedTask = nil
-                        }
-                    }
-                    .transition(.opacity)
-
-                VStack {
-                    Spacer()
-                    TaskDetailView(task: task, onClose: {
-                        withAnimation {
-                            selectedTask = nil
-                        }
-                    })
-                    Spacer()
-                }
-                .padding()
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .zIndex(2)
-            }
+        // Present TaskDetailView as a sheet when a concrete task is selected
+        .sheet(item: $selectedTask) { task in
+            // Provide the same onClose behavior so the close button inside the sheet dismisses it
+            TaskDetailView(task: task, onClose: {
+                selectedTask = nil
+            })
         }
     }
 

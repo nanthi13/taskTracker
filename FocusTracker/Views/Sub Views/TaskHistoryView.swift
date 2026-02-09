@@ -6,94 +6,71 @@ struct TaskHistoryView: View {
     @ObservedObject var dataManager: DataManager
     @State private var showClearAlert = false
     @State private var selectedTask: PomodoroTaskModel? = nil
-    
-    var body: some View {
-        ZStack {
-            List {
-                Section(header: Text("Previous Tasks")) {
-                    if dataManager.tasks.isEmpty {
-                        Text("No tasks yet.")
-                            .foregroundColor(.gray)
-                            .padding()
-                    } else {
-                        ForEach(Array(dataManager.tasks.enumerated()), id: \.element.id) {index, task in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(task.name)
-                                    .font(.headline)
-                                Text("Focused for \(timeString(from: task.duration)) on \(task.date.formatted(date: .abbreviated, time: .shortened))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("taskRow_\(task.name)")
-                            .padding(.vertical, 4)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation {
-                                    selectedTask = task
-                                }
-                            }
-                        }
-                        .onDelete(perform: deleteTask)
-                    }
-                }
-            }
-            .accessibilityIdentifier("taskHistoryList")
-            .navigationTitle("Task History")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(role: .destructive) {
-                        showClearAlert = true
-                    } label: {
-                        Label("Clear All", systemImage: "trash")
-                    }
-                    .accessibilityIdentifier("clearAllButton")
-                    .disabled(dataManager.tasks.isEmpty)
-                }
-            }
-            .alert("Clear all tasks?", isPresented: $showClearAlert) {
-                Button("Delete All", role: .destructive) {
-                    dataManager.clearAllTasks()
-                }
-                
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("This action cannot be undone.")
-            }
-            // Overlay the detail card when a task is selected
-            if let selected = selectedTask {
-                Color.black.opacity(0.35)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        withAnimation {
-                            selectedTask = nil
-                        }
-                    }
-                    .transition(.opacity)
-                    .zIndex(1)
 
-                VStack {
-                    Spacer()
-                    TaskDetailView(task: selected, onClose: {
-                        withAnimation {
-                            selectedTask = nil
+    var body: some View {
+        List {
+            Section(header: Text("Previous Tasks")) {
+                if dataManager.tasks.isEmpty {
+                    Text("No tasks yet.")
+                        .foregroundColor(.gray)
+                        .padding()
+                } else {
+                    ForEach(Array(dataManager.tasks.enumerated()), id: \.element.id) {index, task in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(task.name)
+                                .font(.headline)
+                            Text("Focused for \(timeString(from: task.duration)) on \(task.date.formatted(date: .abbreviated, time: .shortened))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                    })
-                    Spacer()
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("taskRow_\(task.name)")
+                        .padding(.vertical, 4)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedTask = task
+                        }
+                    }
+                    .onDelete(perform: deleteTask)
                 }
-                .padding()
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .zIndex(2)
             }
         }
+        .accessibilityIdentifier("taskHistoryList")
+        .navigationTitle("Task History")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(role: .destructive) {
+                    showClearAlert = true
+                } label: {
+                    Label("Clear All", systemImage: "trash")
+                }
+                .accessibilityIdentifier("clearAllButton")
+                .disabled(dataManager.tasks.isEmpty)
+            }
+        }
+        .alert("Clear all tasks?", isPresented: $showClearAlert) {
+            Button("Delete All", role: .destructive) {
+                dataManager.clearAllTasks()
+            }
+
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This action cannot be undone.")
+        }
+        // Present the TaskDetailView as a sheet instead of overlay
+        .sheet(item: $selectedTask) { task in
+            TaskDetailView(task: task, onClose: {
+                selectedTask = nil
+            })
+        }
     }
-    
+
     func timeString(from seconds: Int) -> String {
         let m = seconds / 60
         let s = seconds % 60
         return String(format: "%02d:%02d", m, s)
     }
-    
+
     func deleteTask(at offsets: IndexSet) {
         dataManager.removeTask(at: offsets)
     }
