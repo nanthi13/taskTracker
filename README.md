@@ -1,6 +1,6 @@
 # TaskTracker
 
-**TaskTracker** is a simple iOS-focused task tracker app built in Swift. It helps you stay focused by letting you set a timer for a task session (focus time) and a break session, and logs completed tasks with their duration and date. :contentReference[oaicite:1]{index=1}
+**TaskTracker** is a simple iOS-focused task tracker app built in Swift. It helps you stay focused by letting you set a timer for a task session (focus time) and a break session, and logs completed tasks with their duration and date.
 
 ---
 
