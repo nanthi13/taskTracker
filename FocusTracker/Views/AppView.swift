@@ -56,8 +56,20 @@ struct AppView: View {
             .tag(AppTab.history)
             
             // PROFILE TAB
+            // TODO: Remove during production
             NavigationStack {
-                
+                // used for testing only
+                VStack {
+                    Button("loadData") {
+                        let weeks = 30
+                        dataManager.loadMockDataSpanningWeeks(weeks: weeks)
+                        print("loading mock data for \(weeks) spanning \(7 * weeks) days")
+                    }
+                        .buttonStyle(.borderedProminent)
+                        .padding()
+                }
+                AnalyticsDashboardView(tasks: dataManager.tasks)
+
             }
             .tabItem {
                 Label("Profile", systemImage: "person.crop.circle.fill")
