@@ -17,11 +17,29 @@ struct FocusChartCard: View {
                 .font(.headline)
             
             Chart(animatedData) { point in
-                BarMark(
-                    x: .value("Date", point.date),
-                    y: .value("Minutes", point.totalMinutes)
-                )
-                .cornerRadius(4)
+                switch granularity {
+                    
+                case .daily:
+                    BarMark(
+                        x: .value("Date", point.date),
+                        y: .value("Minutes", point.totalMinutes)
+                    )
+                    .cornerRadius(4)
+                    
+                case .weekly:
+                    AreaMark(
+                        x: .value("Date", point.date),
+                        y: .value("Minutes", point.totalMinutes)
+                    )
+                    .opacity(0.15)
+
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Minutes", point.totalMinutes)
+                    )
+                    .symbol(.circle)
+                    .interpolationMethod(.catmullRom)
+                }
             }
             .chartXAxis {
                 AxisMarks { value in
