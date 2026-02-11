@@ -19,7 +19,8 @@ class DataManager: ObservableObject {
         
         #if DEBUG
         if tasks.isEmpty {
-            loadMockDataWithDate()
+            // set up mock data for testing
+            loadMockDataSpanningWeeks(weeks: 20)
         }
         #endif
     }
@@ -95,4 +96,33 @@ class DataManager: ObservableObject {
         ]
         saveTasks()
     }
+    
+    // used for testing weekly analytics with a wider date range (spanning x weeks)
+    func loadMockDataSpanningWeeks(weeks: Int) {
+        let days = weeks * 7
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        var generatedTasks: [PomodoroTaskModel] = []
+        
+        // Go back x days + today and create a task for each day
+        for offset in 0..<days {
+            if let date = calendar.date(byAdding: .day, value: -offset, to: today) {
+                
+                let task = PomodoroTaskModel(
+                    name: "Mock Task \(offset + 1)",
+                    duration: Int.random(in: 600...1800), // 10–30 min
+                    date: date
+                )
+                
+                generatedTasks.append(task)
+            }
+        }
+        
+        // Optional: sort chronologically (oldest first)
+        tasks = generatedTasks.sorted { $0.date < $1.date }
+        
+        saveTasks()
+    }
+
 }
