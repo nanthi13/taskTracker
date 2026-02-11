@@ -32,16 +32,29 @@ struct FocusDetailChartView: View {
             }
 
             Chart(data) { point in
-                BarMark(
-                    x: .value("Date", point.date),
-                    y: .value("Minutes", point.totalMinutes)
-                )
-                .cornerRadius(8)
-                .foregroundStyle(
-                    selectedPoint?.id == point.id
-                    ? Color.accentColor.opacity(0.9) // still allowed as Color
-                    : Color.secondary
-                )
+                switch granularity {
+                    
+                case .daily:
+                    BarMark(
+                        x: .value("Date", point.date),
+                        y: .value("Minutes", point.totalMinutes)
+                    )
+                    .cornerRadius(4)
+                    
+                case .weekly:
+                    AreaMark(
+                        x: .value("Date", point.date),
+                        y: .value("Minutes", point.totalMinutes)
+                    )
+                    .opacity(0.15)
+
+                    LineMark(
+                        x: .value("Date", point.date),
+                        y: .value("Minutes", point.totalMinutes)
+                    )
+                    .symbol(.circle)
+                    .interpolationMethod(.catmullRom)
+                }
             }
             .chartXAxis {
                 AxisMarks { value in
