@@ -17,11 +17,7 @@ struct FocusChartCard: View {
                 .font(.headline)
             
             Chart(animatedData) { point in
-                BarMark(
-                    x: .value("Date", point.date),
-                    y: .value("Minutes", point.totalMinutes)
-                )
-                .cornerRadius(4)
+                FocusChartMarks.build(point: point, granularity: granularity)
             }
             .chartXAxis {
                 AxisMarks { value in
@@ -53,5 +49,4 @@ struct FocusChartCard: View {
             }
         }
     }
-    
 }

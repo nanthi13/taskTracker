@@ -32,16 +32,7 @@ struct FocusDetailChartView: View {
             }
 
             Chart(data) { point in
-                BarMark(
-                    x: .value("Date", point.date),
-                    y: .value("Minutes", point.totalMinutes)
-                )
-                .cornerRadius(8)
-                .foregroundStyle(
-                    selectedPoint?.id == point.id
-                    ? Color.accentColor.opacity(0.9) // still allowed as Color
-                    : Color.secondary
-                )
+                FocusChartMarks.build(point: point, granularity: granularity)
             }
             .chartXAxis {
                 AxisMarks { value in
