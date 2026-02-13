@@ -5,7 +5,10 @@ import SwiftUI
 struct TaskDetailView: View {
     let task: PomodoroTaskModel
     var onClose: (() -> Void)?
+    @ObservedObject var dataManager: DataManager
+    @State private var showDeleteConfirmation: Bool = false
 
+    
     private func timeString(from seconds: Int) -> String {
         let m = seconds / 60
         let s = seconds % 60
@@ -17,7 +20,7 @@ struct TaskDetailView: View {
             return "\(m) min \(s) sec"
         }
     }
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -34,12 +37,26 @@ struct TaskDetailView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("taskDetailCloseButton")
             }
-
-            Text(task.name)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .lineLimit(2)
-
+            HStack {
+                // Title and delete button on the same row, delete aligned to trailing
+                Text(task.name)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .lineLimit(2)
+                Spacer()
+                Button(role: .destructive) {
+                    // show confirmation instead of deleting immediately
+                    showDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                        .padding(8)
+                        .background(Color(.systemGray5))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("taskDeleteButton")
+            }
             HStack(spacing: 10) {
                 Label(timeString(from: task.duration), systemImage: "clock")
                     .font(.caption)
@@ -49,26 +66,37 @@ struct TaskDetailView: View {
                 Text(task.date.formatted(date: .abbreviated, time: .shortened))
                     .font(.caption)
                     .foregroundColor(.secondary)
+                
+                Spacer(minLength: 0)
             }
-
-            Spacer(minLength: 0)
+            .padding()
+            .frame(maxWidth: 320)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: Color(.black).opacity(0.08), radius: 8, x: 0, y: 4)
+            )
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("taskDetailCard_\(task.id.uuidString)")
         }
-        .padding()
-        .frame(maxWidth: 320)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(.systemBackground))
-                .shadow(color: Color(.black).opacity(0.08), radius: 8, x: 0, y: 4)
-        )
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("taskDetailCard_\(task.id.uuidString)")
+        .alert("Delete Task?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                dataManager.removeTask(task)
+                // close the sheet / view after deletion
+                onClose?()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Are you sure you want to delete \"\(task.name)\"? This action cannot be undone.")
+        }
     }
 }
 
 // MARK: - Preview
 
 #Preview {
+    let dataManager = DataManager()
     let sample = PomodoroTaskModel(name: "Write Unit Tests", duration: 25 * 60, date: Date())
-    return TaskDetailView(task: sample, onClose: {})
+    TaskDetailView(task: sample, onClose: {}, dataManager: dataManager)
         .padding()
 }
