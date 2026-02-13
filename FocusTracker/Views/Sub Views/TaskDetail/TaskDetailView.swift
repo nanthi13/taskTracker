@@ -7,6 +7,8 @@ struct TaskDetailView: View {
     var onClose: (() -> Void)?
     @ObservedObject var dataManager: DataManager
     @State private var showDeleteConfirmation: Bool = false
+    @State private var isEditing: Bool = false
+    @State private var editedName: String = ""
 
     
     private func timeString(from seconds: Int) -> String {
@@ -38,24 +40,73 @@ struct TaskDetailView: View {
                 .accessibilityIdentifier("taskDetailCloseButton")
             }
             HStack {
-                // Title and delete button on the same row, delete aligned to trailing
-                Text(task.name)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .lineLimit(2)
-                Spacer()
-                Button(role: .destructive) {
-                    // show confirmation instead of deleting immediately
-                    showDeleteConfirmation = true
-                } label: {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .padding(8)
-                        .background(Color(.systemGray5))
-                        .clipShape(Circle())
+                // Title and edit/delete buttons on the same row
+                if isEditing {
+                    TextField("Task name", text: $editedName)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.title3)
+                } else {
+                    Text(task.name)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .lineLimit(2)
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("taskDeleteButton")
+
+                Spacer()
+
+                if isEditing {
+                    Button {
+                        // Cancel editing
+                        isEditing = false
+                        editedName = task.name
+                    } label: {
+                        Text("Cancel")
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        // Save changes: update task, then auto-close sheet
+                        var updated = task
+                        updated.name = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if !updated.name.isEmpty {
+                            dataManager.updateTask(updated)
+                            // auto-close the sheet after successful save
+                            onClose?()
+                        }
+                        isEditing = false
+                    } label: {
+                        Text("Save")
+                            .fontWeight(.semibold)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("taskSaveButton")
+                } else {
+                    Button {
+                        // enter edit mode
+                        editedName = task.name
+                        isEditing = true
+                    } label: {
+                        Image(systemName: "pencil")
+                            .padding(8)
+                            .background(Color(.systemGray5))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("taskEditButton")
+
+                    Button(role: .destructive) {
+                        // show confirmation instead of deleting immediately
+                        showDeleteConfirmation = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                            .padding(8)
+                            .background(Color(.systemGray5))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("taskDeleteButton")
+                }
             }
             HStack(spacing: 10) {
                 Label(timeString(from: task.duration), systemImage: "clock")
@@ -88,6 +139,9 @@ struct TaskDetailView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Are you sure you want to delete \"\(task.name)\"? This action cannot be undone.")
+        }
+        .onAppear {
+            editedName = task.name
         }
     }
 }
