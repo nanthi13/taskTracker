@@ -24,6 +24,7 @@ struct StartStopButtonsView: View {
                 }
                 .buttonStyle(PomodoroButtonStyle(color: .green))
                 .accessibilityIdentifier("startButton")
+                .clipShape(RoundedRectangle(cornerRadius: 100))
             case .running:
                 Button("Pause", action: pause)
                     .buttonStyle(PomodoroButtonStyle(color: .teal))
