@@ -24,14 +24,21 @@ struct TaskDetailView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Task Details")
-                    .font(.headline)
+        VStack(spacing: 16) {
+            // Header
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Task Details")
+                        .font(.headline)
+                    Text("Quick view and actions")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 Spacer()
+                // Close button
                 Button(action: { onClose?() }) {
                     Image(systemName: "xmark")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.primary)
                         .padding(8)
                         .background(Color(.systemGray5))
                         .clipShape(Circle())
@@ -39,97 +46,131 @@ struct TaskDetailView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("taskDetailCloseButton")
             }
-            HStack {
-                // Title and edit/delete buttons on the same row
-                if isEditing {
-                    TextField("Task name", text: $editedName)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.title3)
-                } else {
-                    Text(task.name)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .lineLimit(2)
-                }
-
-                Spacer()
-
-                if isEditing {
-                    Button {
-                        // Cancel editing
-                        isEditing = false
-                        editedName = task.name
-                    } label: {
-                        Text("Cancel")
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        // Save changes: update task, then auto-close sheet
-                        var updated = task
-                        updated.name = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if !updated.name.isEmpty {
-                            dataManager.updateTask(updated)
-                            // auto-close the sheet after successful save
-                            onClose?()
-                        }
-                        isEditing = false
-                    } label: {
-                        Text("Save")
+            .padding(.horizontal)
+            
+            // Main card
+            VStack(spacing: 12) {
+                // Title / Edit row
+                HStack(alignment: .top) {
+                    if isEditing {
+                        TextField("Task name", text: $editedName)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.title3)
+                            .accessibilityIdentifier("taskNameTextField")
+                    } else {
+                        Text(task.name)
+                            .font(.title3)
                             .fontWeight(.semibold)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(3)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("taskSaveButton")
-                } else {
-                    Button {
-                        // enter edit mode
-                        editedName = task.name
-                        isEditing = true
-                    } label: {
-                        Image(systemName: "pencil")
-                            .padding(8)
-                            .background(Color(.systemGray5))
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("taskEditButton")
 
-                    Button(role: .destructive) {
-                        // show confirmation instead of deleting immediately
-                        showDeleteConfirmation = true
-                    } label: {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                            .padding(8)
-                            .background(Color(.systemGray5))
-                            .clipShape(Circle())
+                    Spacer()
+
+                    if isEditing {
+                        // Save / Cancel stacked vertically on compact space
+                        VStack(spacing: 8) {
+                            Button(action: {
+                                // Save changes: update task, then auto-close sheet
+                                let newName = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
+                                if !newName.isEmpty {
+                                    var updated = task
+                                    updated.name = newName
+                                    dataManager.updateTask(updated)
+                                    // auto-close the sheet after successful save
+                                    onClose?()
+                                }
+                                isEditing = false
+                            }) {
+                                Text("Save")
+                                    .frame(minWidth: 72)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(editedName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .accessibilityIdentifier("taskSaveButton")
+
+                            Button(action: {
+                                // Cancel editing
+                                withAnimation { isEditing = false }
+                                editedName = task.name
+                            }) {
+                                Text("Cancel")
+                                    .frame(minWidth: 72)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    } else {
+                        // Action icons: edit + delete
+                        HStack(spacing: 10) {
+                            Button(action: {
+                                // enter edit mode
+                                editedName = task.name
+                                withAnimation { isEditing = true }
+                            }) {
+                                Image(systemName: "pencil")
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(.systemGray5))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("taskEditButton")
+
+                            Button(role: .destructive) {
+                                showDeleteConfirmation = true
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(.systemGray5))
+                                    .clipShape(Circle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("taskDeleteButton")
+                        }
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityIdentifier("taskDeleteButton")
                 }
-            }
-            HStack(spacing: 10) {
-                Label(timeString(from: task.duration), systemImage: "clock")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                Divider()
-                    .frame(height: 14)
-                Text(task.date.formatted(date: .abbreviated, time: .shortened))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                 
-                Spacer(minLength: 0)
+                // Metadata row
+                HStack(spacing: 12) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(timeString(from: task.duration))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "calendar")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(task.date.formatted(date: .abbreviated, time: .shortened))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+
+                    Spacer()
+                }
             }
             .padding()
-            .frame(maxWidth: 320)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: Color(.black).opacity(0.08), radius: 8, x: 0, y: 4)
-            )
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("taskDetailCard_\(task.id.uuidString)")
+            .background(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(.systemBackground)))
+            .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+            .padding(.horizontal)
+            
+            Spacer()
         }
+        .padding(.vertical)
+        .animation(.default, value: isEditing)
         .alert("Delete Task?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {
                 dataManager.removeTask(task)
