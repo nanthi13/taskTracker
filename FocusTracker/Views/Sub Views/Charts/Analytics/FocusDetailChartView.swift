@@ -13,8 +13,88 @@ struct FocusDetailChartView: View {
     @State private var selectedPoint: FocusAnalyticsPoint?
     @State private var selectedTask: PomodoroTaskModel?
 
+    // paging state: 0 = most recent window, 1 = previous window, etc.
+    @State private var page: Int = 0
+
+    private var windowSize: Int {
+        switch granularity {
+        case .daily: return 7
+        case .weekly: return 6
+        }
+    }
+
+    // Visible slice of data based on current page (most recent window when page == 0)
+    private var visibleData: [FocusAnalyticsPoint] {
+        let total = data.count
+        guard total > 0 else { return [] }
+
+        let size = windowSize
+        let endIndex = total - 1 - page * size
+        if endIndex < 0 {
+            return []
+        }
+        let startIndex = max(0, endIndex - (size - 1))
+        return Array(data[startIndex...endIndex])
+    }
+
+    // maximum page available (older pages)
+    private var maxPage: Int {
+        let total = data.count
+        guard total > windowSize else { return 0 }
+        // number of full/partial windows before the most recent one
+        let extra = total - windowSize
+        return Int((Double(extra) / Double(windowSize)).rounded(.up))
+    }
+
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 12) {
+
+            // header with small pager controls
+            HStack(spacing: 12) {
+                Text(title)
+                    .font(.headline)
+
+                Spacer()
+
+                // show current range label
+                if let first = visibleData.first?.date, let last = visibleData.last?.date {
+                    Text(rangeLabel(start: first, end: last))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                // pager buttons
+                HStack(spacing: 8) {
+                    Button {
+                        // older (previous)
+                        withAnimation {
+                            page = min(page + 1, maxPage)
+                            selectedPoint = nil
+                            selectedTask = nil
+                        }
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .padding(8)
+                            .background(Circle().fill(Color(.systemGray6)))
+                    }
+                    .disabled(page >= maxPage)
+
+                    Button {
+                        // newer (next)
+                        withAnimation {
+                            page = max(page - 1, 0)
+                            selectedPoint = nil
+                            selectedTask = nil
+                        }
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .padding(8)
+                            .background(Circle().fill(Color(.systemGray6)))
+                    }
+                    .disabled(page == 0)
+                }
+            }
+            .padding(.horizontal)
 
             // Selected value readout
             if let selectedPoint {
@@ -31,7 +111,7 @@ struct FocusDetailChartView: View {
                 .padding(.horizontal)
             }
 
-            Chart(data) { point in
+            Chart(visibleData) { point in
                 FocusChartMarks.build(point: point, granularity: granularity)
             }
             .chartXAxis {
@@ -46,21 +126,65 @@ struct FocusDetailChartView: View {
             .chartYAxis {
                 AxisMarks(position: .leading)
             }
+            // detect swipe on the Chart itself to page windows (separate from overlay selection)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 10)
+                    .onEnded { value in
+                        let translation = value.translation
+                        let predicted = value.predictedEndTranslation
+                        let threshold: CGFloat = 40
+                        if translation.width < -threshold || predicted.width < -threshold {
+                            withAnimation {
+                                page = min(page + 1, maxPage)
+                                selectedPoint = nil
+                                selectedTask = nil
+                            }
+                        } else if translation.width > threshold || predicted.width > threshold {
+                            withAnimation {
+                                page = max(page - 1, 0)
+                                selectedPoint = nil
+                                selectedTask = nil
+                            }
+                        }
+                    }
+            )
             .chartOverlay { proxy in
                 GeometryReader { geo in
                     Rectangle()
                         .fill(.clear)
                         .contentShape(Rectangle())
-                        .gesture(
+                        .highPriorityGesture(
                             DragGesture(minimumDistance: 0)
                                 .onChanged { value in
                                     let location = value.location
                                     if let date: Date = proxy.value(atX: location.x) {
-                                        selectedPoint = closestPoint(to: date)
+                                        selectedPoint = closestPointInVisible(to: date)
                                         // map the selected analytics point to a concrete task (most recent on that date/week)
                                         if let selected = selectedPoint {
                                             selectedTask = taskFor(analyticsPoint: selected)
                                         } else {
+                                            selectedTask = nil
+                                        }
+                                    }
+                                }
+                                .onEnded { value in
+                                    // detect horizontal swipe to page through windows
+                                    let translation = value.translation
+                                    let predicted = value.predictedEndTranslation
+                                    // lower threshold and consider swipe velocity/predicted end
+                                    let threshold: CGFloat = 40
+                                    if translation.width < -threshold || predicted.width < -threshold {
+                                        // swipe left => older
+                                        withAnimation {
+                                            page = min(page + 1, maxPage)
+                                            selectedPoint = nil
+                                            selectedTask = nil
+                                        }
+                                    } else if translation.width > threshold || predicted.width > threshold {
+                                        // swipe right => newer
+                                        withAnimation {
+                                            page = max(page - 1, 0)
+                                            selectedPoint = nil
                                             selectedTask = nil
                                         }
                                     }
@@ -70,6 +194,8 @@ struct FocusDetailChartView: View {
             }
             .frame(height: 320)
             .padding(.horizontal)
+
+            Spacer()
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
@@ -78,6 +204,17 @@ struct FocusDetailChartView: View {
     }
 
     // MARK: - Helpers
+
+    private func rangeLabel(start: Date, end: Date) -> String {
+        let startLabel = start.formatted(.dateTime.month().day())
+        let endLabel = end.formatted(.dateTime.month().day())
+        switch granularity {
+        case .daily:
+            return "\(startLabel) - \(endLabel)"
+        case .weekly:
+            return "Weeks: \(startLabel) - \(endLabel)"
+        }
+    }
 
     private func label(for date: Date) -> String {
         switch granularity {
@@ -88,8 +225,8 @@ struct FocusDetailChartView: View {
         }
     }
 
-    private func closestPoint(to date: Date) -> FocusAnalyticsPoint? {
-        data.min {
+    private func closestPointInVisible(to date: Date) -> FocusAnalyticsPoint? {
+        visibleData.min {
             abs($0.date.timeIntervalSince(date)) <
             abs($1.date.timeIntervalSince(date))
         }
