@@ -22,6 +22,7 @@ struct HomeView: View {
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .opacity(timerManager.taskName.isEmpty ? 1 : 0)
+                        .opacity(timerManager.state == .idle ? 1 : 0) // only show when idle
                         .animation(.easeInOut(duration: 0.25), value: timerManager.taskName)
                     
                     Text(timerManager.mode == .breakTime ? "Break Time" : "Focus Time")

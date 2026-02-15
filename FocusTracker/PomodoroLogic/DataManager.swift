@@ -44,6 +44,14 @@ class DataManager: ObservableObject {
         tasks.removeAll { $0.id == task.id }
         saveTasks()
     }
+
+    // update an existing task (e.g., rename) and persist
+    func updateTask(_ updated: PomodoroTaskModel) {
+        if let idx = tasks.firstIndex(where: { $0.id == updated.id }) {
+            tasks[idx] = updated
+            saveTasks()
+        }
+    }
     
     func clearAllTasks() {
         tasks.removeAll()

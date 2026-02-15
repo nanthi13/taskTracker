@@ -47,7 +47,8 @@ struct AnalyticsDashboardView: View {
                 case .daily:
                     FocusDetailChartView(
                         title: "Daily Focus",
-                        data: Array(dailyData),
+                        // pass full series so the detail view can page through older windows
+                        data: Array(tasks.dailyTotals()),
                         granularity: .daily,
                         tasks: tasks
                     )
@@ -55,7 +56,8 @@ struct AnalyticsDashboardView: View {
                 case .weekly:
                     FocusDetailChartView(
                         title: "Weekly Focus",
-                        data: Array(weeklyData),
+                        // pass full series so the detail view can page through older windows
+                        data: Array(tasks.weeklyTotals()),
                         granularity: .weekly,
                         tasks: tasks
                     )

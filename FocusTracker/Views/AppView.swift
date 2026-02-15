@@ -77,6 +77,7 @@ struct AppView: View {
             .tag(AppTab.profile)
             
         }
+        .environmentObject(dataManager)
     }
     
     func timeString(from seconds: Int) -> String {

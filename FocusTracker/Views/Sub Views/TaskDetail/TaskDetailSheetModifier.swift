@@ -6,6 +6,7 @@ import SwiftUI
 // reusable code to represent the task detail sheet, used in  analytics, recenttasks and task list
 struct TaskDetailSheetModifier: ViewModifier {
     @Binding var selectedTask: PomodoroTaskModel?
+    @EnvironmentObject var dataManager: DataManager
 
     func body(content: Content) -> some View {
         content
@@ -14,7 +15,8 @@ struct TaskDetailSheetModifier: ViewModifier {
                     task: task,
                     onClose: {
                         selectedTask = nil
-                    }
+                    },
+                    dataManager: dataManager
                 )
                 .presentationDetents([.fraction(0.45)])
                 .presentationDragIndicator(.visible)
