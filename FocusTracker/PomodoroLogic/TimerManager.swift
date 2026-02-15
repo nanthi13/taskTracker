@@ -5,6 +5,7 @@ import SwiftUI
 import AudioToolbox
 internal import Combine
 import UIKit
+import UserNotifications
 
 @MainActor
 class TimerManager: ObservableObject {
@@ -39,6 +40,8 @@ class TimerManager: ObservableObject {
     /// The absolute end date for the current running countdown. We use this to
     /// recalculate remaining time when the app returns from background.
     private var endDate: Date?
+    
+    private static let notificationIdentifier = "pomodoro_timer_end"
     
     var focusDuration: Int { selectedFocusMinutes * 60 }
     var breakDuration: Int { selectedBreakMinutes * 60 }
@@ -90,6 +93,11 @@ class TimerManager: ObservableObject {
         // Calculate an absolute end date based on the current timeRemaining so we can recover after backgrounding
         endDate = Date().addingTimeInterval(TimeInterval(timeRemaining))
         
+        // Schedule a local notification to fire when the timer finishes (useful if the app is backgrounded)
+        if let end = endDate {
+            scheduleNotification(for: end)
+        }
+        
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             Task { @MainActor in
@@ -131,6 +139,9 @@ class TimerManager: ObservableObject {
     }
     
     private func handleTimerFinished() {
+        // Cancel any pending notification since we've completed while app is active
+        cancelScheduledNotification()
+
         playSystemSound()
         
         switch mode {
@@ -176,6 +187,9 @@ class TimerManager: ObservableObject {
         }
         endDate = nil
 
+        // Cancel scheduled notification because timer is paused
+        cancelScheduledNotification()
+
     }
     
     func resetTimer() {
@@ -185,6 +199,9 @@ class TimerManager: ObservableObject {
         animatedProgress = 0
         timeRemaining = focusDuration
         endDate = nil
+
+        // Cancel any pending notification when resetting
+        cancelScheduledNotification()
     }
     
     // helper
@@ -196,6 +213,54 @@ class TimerManager: ObservableObject {
     // alert sound
     private func playSystemSound() {
         AudioServicesPlaySystemSound(1005)
+    }
+
+    // MARK: - Local notification helpers
+    private func scheduleNotification(for endDate: Date) {
+        let interval = endDate.timeIntervalSinceNow
+        guard interval > 0 else { return }
+
+        // Avoid capturing UNUserNotificationCenter in @Sendable closures by calling .current() inside closures
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            if settings.authorizationStatus == .authorized {
+                Task { @MainActor in
+                    self.createNotificationRequest(after: interval)
+                }
+            } else {
+                // Request permission and schedule if granted
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+                    if granted {
+                        Task { @MainActor in
+                            self.createNotificationRequest(after: interval)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func createNotificationRequest(after interval: TimeInterval) {
+        let content = UNMutableNotificationContent()
+        content.title = "Focus complete"
+        content.body = taskName.isEmpty ? "Your focus session has ended." : "\(taskName) has finished."
+        content.sound = UNNotificationSound.default
+
+        // Use a time-interval trigger so the notification fires even if the app is backgrounded
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, interval), repeats: false)
+
+        let request = UNNotificationRequest(identifier: TimerManager.notificationIdentifier, content: content, trigger: trigger)
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let err = error {
+                print("Failed to schedule notification: \(err)")
+            }
+        }
+    }
+
+    private func cancelScheduledNotification() {
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [TimerManager.notificationIdentifier])
+        center.removeDeliveredNotifications(withIdentifiers: [TimerManager.notificationIdentifier])
     }
 
     // MARK: - App lifecycle handlers
