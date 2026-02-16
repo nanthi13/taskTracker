@@ -37,6 +37,15 @@ struct FocusDetailChartView: View {
         return Array(data[startIndex...endIndex])
     }
 
+    // compute average minutes for the visible window
+    private var averageMinutes: Double? {
+        guard !visibleData.isEmpty else { return nil }
+        let sum = visibleData.reduce(0.0) { partial, point in
+            partial + Double(point.totalMinutes)
+        }
+        return sum / Double(visibleData.count)
+    }
+
     // maximum page available (older pages)
     private var maxPage: Int {
         let total = data.count
@@ -111,8 +120,34 @@ struct FocusDetailChartView: View {
                 .padding(.horizontal)
             }
 
-            Chart(visibleData) { point in
-                FocusChartMarks.build(point: point, granularity: granularity)
+            Chart {
+                ForEach(visibleData, id: \.date) { point in
+                    FocusChartMarks.build(point: point, granularity: granularity)
+                }
+
+                // draw an average horizontal rule and annotation for the visible window
+                if let avg = averageMinutes {
+                    RuleMark(y: .value("Average", avg))
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [6]))
+                        .foregroundStyle(Color.accentColor.gradient)
+                        .annotation(position: .top, alignment: .trailing) {
+                            Text("\(Int(round(avg))) min avg")
+                                .font(.callout)
+                                .bold()
+                                .foregroundColor(.white)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.accentColor)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                        )
+                                )
+                                .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
+                        }
+                }
             }
             .chartXAxis {
                 AxisMarks { value in
