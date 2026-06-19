@@ -118,7 +118,7 @@ class DataManager: ObservableObject {
             if let date = calendar.date(byAdding: .day, value: -offset, to: today) {
                 
                 let task = PomodoroTaskModel(
-                    name: "Mock Task \(offset + 1)",
+                    name: "Mock Task \(days - offset)", // oldest = 1, most recent = days
                     duration: Int.random(in: 600...1800), // 10–30 min
                     date: date
                 )
@@ -134,3 +134,4 @@ class DataManager: ObservableObject {
     }
 
 }
+
