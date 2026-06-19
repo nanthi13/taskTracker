@@ -8,6 +8,11 @@ struct RecentTasksCardView: View {
     @Binding var selectedTab: AppTab
     @State private var selectedTask: PomodoroTaskModel? = nil
 
+    // Always take the 3 most recent tasks by date descending
+    private var recentThree: [PomodoroTaskModel] {
+        dataManager.tasks.sorted(by: { $0.date > $1.date }).prefix(3).map { $0 }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Recent Tasks")
@@ -15,14 +20,12 @@ struct RecentTasksCardView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.horizontal)
 
-
             if dataManager.tasks.isEmpty {
                 Text("No tasks yet.")
                     .foregroundColor(.gray)
                     .padding()
             } else {
-                // Show up to 3 most recent tasks
-                ForEach(dataManager.tasks.sorted(by: { $0.date > $1.date }).prefix(3)) { task in
+                ForEach(recentThree) { task in
                     HStack {
                         VStack(alignment: .leading) {
                             Text(task.name)
