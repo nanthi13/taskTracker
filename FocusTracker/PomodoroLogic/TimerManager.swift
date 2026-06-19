@@ -70,7 +70,6 @@ class TimerManager: ObservableObject {
     func startTimer() {
         guard state == .idle else { return }
         startCountDown()
-
     }
     
     func resumeTimer() {
@@ -83,10 +82,10 @@ class TimerManager: ObservableObject {
     private func startCountDown(resume: Bool = false) {
         state = .running
         
-        let duration = currentDuration
+        let intendedDuration = currentDuration
         
         if !resume {
-            timeRemaining = duration
+            timeRemaining = intendedDuration
             animatedProgress = 0
         }
 
@@ -98,15 +97,23 @@ class TimerManager: ObservableObject {
             scheduleNotification(for: end)
         }
         
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            Task { @MainActor in
-                self.tick(totalDuration: duration)
-            }
-        }
+        restartTickingTimer(intendedDuration: intendedDuration)
     }
     
-    private func tick(totalDuration: Int) {
+    private func restartTickingTimer(intendedDuration: Int) {
+        timer?.invalidate()
+        // Use a timer added to the common run loop mode so UI interactions don't pause it.
+        let newTimer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            Task { @MainActor in
+                self.tick(intendedDuration: intendedDuration)
+            }
+        }
+        self.timer = newTimer
+        RunLoop.main.add(newTimer, forMode: .common)
+    }
+    
+    private func tick(intendedDuration: Int) {
         // Recalculate remaining time from the absolute endDate so the timer remains correct
         guard let end = endDate else {
             // Fallback to decrementing if endDate isn't available
@@ -117,7 +124,7 @@ class TimerManager: ObservableObject {
             }
             timeRemaining -= 1
             withAnimation(.linear(duration:1)) {
-                animatedProgress = 1 - (Double(timeRemaining) / Double(totalDuration))
+                animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
             }
             return
         }
@@ -134,7 +141,7 @@ class TimerManager: ObservableObject {
 
         timeRemaining = newRemaining
         withAnimation(.linear(duration:1)) {
-            animatedProgress = 1 - (Double(timeRemaining) / Double(totalDuration))
+            animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
         }
     }
     
@@ -189,7 +196,6 @@ class TimerManager: ObservableObject {
 
         // Cancel scheduled notification because timer is paused
         cancelScheduledNotification()
-
     }
     
     func resetTimer() {
@@ -265,36 +271,33 @@ class TimerManager: ObservableObject {
 
     // MARK: - App lifecycle handlers
     @objc private func appWillResignActive(_ notification: Notification) {
-        // Nothing needed here because we maintain an absolute endDate while running.
-        // We keep the timer invalidated in background; on returning we will reconcile the remaining time.
+        // Invalidate the UI timer; we will reconcile on return using endDate.
         timer?.invalidate()
     }
 
     @objc private func appDidBecomeActive(_ notification: Notification) {
         // When returning to the foreground, reconcile remaining time and restart the timer if necessary
         guard state == .running else { return }
+        let intendedDuration = currentDuration
         if let end = endDate {
             let remaining = max(0, Int(end.timeIntervalSinceNow))
             if remaining <= 0 {
                 // Timer finished while in the background
                 timer?.invalidate()
+                timeRemaining = 0
+                animatedProgress = 1
                 handleTimerFinished()
             } else {
-                // Update timeRemaining and restart the ticking timer
+                // Update timeRemaining and animatedProgress immediately for visual sync
                 timeRemaining = remaining
-                // ensure animated progress is in sync
                 withAnimation(.linear(duration: 0.2)) {
-                    animatedProgress = 1 - (Double(timeRemaining) / Double(currentDuration))
+                    animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
                 }
-                // restart the scheduled timer
-                timer?.invalidate()
-                timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-                    Task { @MainActor in
-                        self.tick(totalDuration: self.currentDuration)
-                    }
-                }
+                // restart the scheduled timer with fresh intendedDuration
+                restartTickingTimer(intendedDuration: intendedDuration)
             }
         }
     }
 
 }
+
