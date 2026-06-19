@@ -88,7 +88,7 @@ struct AppView: View {
 
             }
             .tabItem {
-                Label("Testing", systemImage: "person.crop.circle.fill")
+                Label("Testing", systemImage: "wrench.and.screwdriver")
             }
             .tag(AppTab.testing)
             
