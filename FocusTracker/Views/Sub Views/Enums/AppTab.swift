@@ -3,5 +3,5 @@
 import Foundation
 
 enum AppTab: Hashable {
-    case home, history, profile, charts
+    case home, history, testing, charts, profile
 }

@@ -58,7 +58,16 @@ struct AppView: View {
             }
             .tag(AppTab.history)
             
-            // PROFILE TAB
+            
+            // add profile tab
+            NavigationStack {
+                // ProfileView()
+            }
+            .tabItem {
+                Label("Profile", systemImage: "person.crop.circle.fill")
+                    .tag(AppTab.profile)
+            }
+            // TESTING TAB
             // TODO: Remove during production, only used for testing
             NavigationStack {
                 // used for testing only
@@ -69,7 +78,7 @@ struct AppView: View {
                         print("loading mock data for \(weeks) spanning \(7 * weeks) days")
                         // reload charts so that the visual data analytics reflect the new data
                         chartsRefreshID = UUID()
-                        selectedTab = .profile
+                        selectedTab = .testing
                     }
                         .buttonStyle(.borderedProminent)
                         .padding()
@@ -79,9 +88,9 @@ struct AppView: View {
 
             }
             .tabItem {
-                Label("Profile", systemImage: "person.crop.circle.fill")
+                Label("Testing", systemImage: "person.crop.circle.fill")
             }
-            .tag(AppTab.profile)
+            .tag(AppTab.testing)
             
         }
         .environmentObject(dataManager)
