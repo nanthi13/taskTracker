@@ -25,6 +25,8 @@ struct AppView: View {
     private var focusDuration: Int { selectedFocusMinutes * 60 }
     private var breakDuration: Int { selectedBreakMinutes * 60 }
     
+    // Force rebuild of charts when needed
+    @State private var chartsRefreshID = UUID()
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -41,6 +43,7 @@ struct AppView: View {
             
             NavigationStack {
                 AnalyticsDashboardView(tasks: dataManager.tasks)
+                    .id(chartsRefreshID)
             }
             .tabItem {
                 Label("Charts", systemImage: "chart.bar.fill")
@@ -56,7 +59,7 @@ struct AppView: View {
             .tag(AppTab.history)
             
             // PROFILE TAB
-            // TODO: Remove during production
+            // TODO: Remove during production, only used for testing
             NavigationStack {
                 // used for testing only
                 VStack {
@@ -64,11 +67,15 @@ struct AppView: View {
                         let weeks = 30
                         dataManager.loadMockDataSpanningWeeks(weeks: weeks)
                         print("loading mock data for \(weeks) spanning \(7 * weeks) days")
+                        // reload charts so that the visual data analytics reflect the new data
+                        chartsRefreshID = UUID()
+                        selectedTab = .profile
                     }
                         .buttonStyle(.borderedProminent)
                         .padding()
                 }
                 AnalyticsDashboardView(tasks: dataManager.tasks)
+                    .id(chartsRefreshID)
 
             }
             .tabItem {
@@ -91,3 +98,4 @@ struct AppView: View {
 #Preview {
     AppView()
 }
+
