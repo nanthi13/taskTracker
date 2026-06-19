@@ -59,16 +59,19 @@ struct AppView: View {
             .tag(AppTab.history)
             
             
-            // add profile tab
+            
             NavigationStack {
-                // ProfileView()
+                 ProfileView()
             }
             .tabItem {
                 Label("Profile", systemImage: "person.crop.circle.fill")
                     .tag(AppTab.profile)
             }
-            // TESTING TAB
-            // TODO: Remove during production, only used for testing
+            
+            // TESTING TAB TestView
+            // TODO: Remove during production, for testing
+            // used for loading mock data, testing task history and charts without having to complete multiple pomodoros
+            
             NavigationStack {
                 // used for testing only
                 VStack {
@@ -80,15 +83,19 @@ struct AppView: View {
                         chartsRefreshID = UUID()
                         selectedTab = .testing
                     }
-                        .buttonStyle(.borderedProminent)
-                        .padding()
+                    .buttonStyle(.borderedProminent)
                 }
-                AnalyticsDashboardView(tasks: dataManager.tasks)
-                    .id(chartsRefreshID)
-
+                
+                VStack {
+                    AnalyticsDashboardView(tasks: dataManager.tasks)
+                        .id(chartsRefreshID)
+                        .padding()
+                    TaskHistoryView(dataManager: dataManager)
+                }
+                
             }
             .tabItem {
-                Label("Testing", systemImage: "wrench.and.screwdriver")
+                Label("Testing", systemImage: "wrench.and.screwdriver.fill")
             }
             .tag(AppTab.testing)
             
