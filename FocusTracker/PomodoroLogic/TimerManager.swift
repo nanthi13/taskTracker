@@ -74,7 +74,7 @@ class TimerManager: ObservableObject {
         startCountDown()
         //startLiveActivity() ?t
         //#BUG: hardcoded value for timer
-        let endDate = Date().addingTimeInterval(25*60)
+        let endDate = Date().addingTimeInterval(TimeInterval(focusDuration))
         await LiveActivityManager.shared.startLiveActivity(endDate: endDate, type: .focusTime)
     }
     
