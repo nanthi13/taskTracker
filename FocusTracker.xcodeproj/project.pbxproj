@@ -7,10 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EB0F87F22FE56F4F00F861F3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */; };
+		EB0F87F42FE56F4F00F861F3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0F87F32FE56F4F00F861F3 /* SwiftUI.framework */; };
+		EB0F88052FE56F5000F861F3 /* TimerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = EB0F87EF2FE56F4F00F861F3 /* TimerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		EBE8986E2F1FC73600EA974E /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = EBE8986D2F1FC73600EA974E /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		EB0F88032FE56F5000F861F3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EBE8982F2F1FC6AE00EA974E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EB0F87EE2FE56F4F00F861F3;
+			remoteInfo = TimerWidgetExtension;
+		};
 		EBE898452F1FC6B000EA974E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EBE8982F2F1FC6AE00EA974E /* Project object */;
@@ -27,7 +37,24 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		EB0F880A2FE56F5000F861F3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EB0F88052FE56F5000F861F3 /* TimerWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		EB0F87EF2FE56F4F00F861F3 /* TimerWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TimerWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		EB0F87F32FE56F4F00F861F3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		EB307FB02F213FA6004668C8 /* FocusTracker.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = FocusTracker.xctestplan; sourceTree = "<group>"; };
 		EBE898372F1FC6AE00EA974E /* FocusTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBE898442F1FC6B000EA974E /* FocusTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -35,7 +62,33 @@
 		EBE8986D2F1FC73600EA974E /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EB0F88062FE56F5000F861F3 /* Exceptions for "TimerWidget" folder in "TimerWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EB0F87EE2FE56F4F00F861F3 /* TimerWidgetExtension */;
+		};
+		EB0F880E2FE571BE00F861F3 /* Exceptions for "TimerWidget" folder in "FocusTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TimerWidgetAttributes.swift,
+			);
+			target = EBE898362F1FC6AE00EA974E /* FocusTracker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		EB0F87F52FE56F4F00F861F3 /* TimerWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EB0F880E2FE571BE00F861F3 /* Exceptions for "TimerWidget" folder in "FocusTracker" target */,
+				EB0F88062FE56F5000F861F3 /* Exceptions for "TimerWidget" folder in "TimerWidgetExtension" target */,
+			);
+			path = TimerWidget;
+			sourceTree = "<group>";
+		};
 		EBE898392F1FC6AE00EA974E /* FocusTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = FocusTracker;
@@ -54,6 +107,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		EB0F87EC2FE56F4F00F861F3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EB0F87F42FE56F4F00F861F3 /* SwiftUI.framework in Frameworks */,
+				EB0F87F22FE56F4F00F861F3 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EBE898342F1FC6AE00EA974E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -78,6 +140,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EB0F87F02FE56F4F00F861F3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */,
+				EB0F87F32FE56F4F00F861F3 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		EBE8982E2F1FC6AE00EA974E = {
 			isa = PBXGroup;
 			children = (
@@ -85,6 +156,8 @@
 				EBE898392F1FC6AE00EA974E /* FocusTracker */,
 				EBE898472F1FC6B000EA974E /* FocusTrackerTests */,
 				EBE898512F1FC6B000EA974E /* FocusTrackerUITests */,
+				EB0F87F52FE56F4F00F861F3 /* TimerWidget */,
+				EB0F87F02FE56F4F00F861F3 /* Frameworks */,
 				EBE898382F1FC6AE00EA974E /* Products */,
 				EBE8986D2F1FC73600EA974E /* .gitignore */,
 			);
@@ -96,6 +169,7 @@
 				EBE898372F1FC6AE00EA974E /* FocusTracker.app */,
 				EBE898442F1FC6B000EA974E /* FocusTrackerTests.xctest */,
 				EBE8984E2F1FC6B000EA974E /* FocusTrackerUITests.xctest */,
+				EB0F87EF2FE56F4F00F861F3 /* TimerWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -103,6 +177,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		EB0F87EE2FE56F4F00F861F3 /* TimerWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EB0F88072FE56F5000F861F3 /* Build configuration list for PBXNativeTarget "TimerWidgetExtension" */;
+			buildPhases = (
+				EB0F87EB2FE56F4F00F861F3 /* Sources */,
+				EB0F87EC2FE56F4F00F861F3 /* Frameworks */,
+				EB0F87ED2FE56F4F00F861F3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				EB0F87F52FE56F4F00F861F3 /* TimerWidget */,
+			);
+			name = TimerWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = TimerWidgetExtension;
+			productReference = EB0F87EF2FE56F4F00F861F3 /* TimerWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		EBE898362F1FC6AE00EA974E /* FocusTracker */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = EBE898582F1FC6B000EA974E /* Build configuration list for PBXNativeTarget "FocusTracker" */;
@@ -110,10 +206,12 @@
 				EBE898332F1FC6AE00EA974E /* Sources */,
 				EBE898342F1FC6AE00EA974E /* Frameworks */,
 				EBE898352F1FC6AE00EA974E /* Resources */,
+				EB0F880A2FE56F5000F861F3 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				EB0F88042FE56F5000F861F3 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				EBE898392F1FC6AE00EA974E /* FocusTracker */,
@@ -181,6 +279,9 @@
 				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
+					EB0F87EE2FE56F4F00F861F3 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
 					EBE898362F1FC6AE00EA974E = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
@@ -211,11 +312,19 @@
 				EBE898362F1FC6AE00EA974E /* FocusTracker */,
 				EBE898432F1FC6B000EA974E /* FocusTrackerTests */,
 				EBE8984D2F1FC6B000EA974E /* FocusTrackerUITests */,
+				EB0F87EE2FE56F4F00F861F3 /* TimerWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		EB0F87ED2FE56F4F00F861F3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EBE898352F1FC6AE00EA974E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -241,6 +350,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		EB0F87EB2FE56F4F00F861F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EBE898332F1FC6AE00EA974E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -265,6 +381,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		EB0F88042FE56F5000F861F3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EB0F87EE2FE56F4F00F861F3 /* TimerWidgetExtension */;
+			targetProxy = EB0F88032FE56F5000F861F3 /* PBXContainerItemProxy */;
+		};
 		EBE898462F1FC6B000EA974E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = EBE898362F1FC6AE00EA974E /* FocusTracker */;
@@ -278,6 +399,68 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		EB0F88082FE56F5000F861F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G5HD44KBJ8;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TimerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = no.ntnu.idata.arunanthi.FocusTracker.TimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		EB0F88092FE56F5000F861F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G5HD44KBJ8;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TimerWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = no.ntnu.idata.arunanthi.FocusTracker.TimerWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		EBE898562F1FC6B000EA974E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -409,6 +592,7 @@
 				DEVELOPMENT_TEAM = G5HD44KBJ8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -442,6 +626,7 @@
 				DEVELOPMENT_TEAM = G5HD44KBJ8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -554,6 +739,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		EB0F88072FE56F5000F861F3 /* Build configuration list for PBXNativeTarget "TimerWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EB0F88082FE56F5000F861F3 /* Debug */,
+				EB0F88092FE56F5000F861F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		EBE898322F1FC6AE00EA974E /* Build configuration list for PBXProject "FocusTracker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

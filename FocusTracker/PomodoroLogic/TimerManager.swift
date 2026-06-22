@@ -6,6 +6,8 @@ import AudioToolbox
 internal import Combine
 import UIKit
 import UserNotifications
+import ActivityKit
+import WidgetKit
 
 @MainActor
 class TimerManager: ObservableObject {
@@ -67,10 +69,16 @@ class TimerManager: ObservableObject {
         timer?.invalidate()
     }
     
-    func startTimer() {
+    func startTimer() async {
         guard state == .idle else { return }
         startCountDown()
+        //startLiveActivity() ?t
+        //#BUG: hardcoded value for timer
+        let endDate = Date().addingTimeInterval(25*60)
+        await LiveActivityManager.shared.startLiveActivity(endDate: endDate, type: .focusTime)
     }
+    
+  
     
     func resumeTimer() {
         guard state == .paused else { return }
