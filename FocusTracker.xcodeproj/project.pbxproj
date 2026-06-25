@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EB0F87F22FE56F4F00F861F3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */; };
 		EB0F87F42FE56F4F00F861F3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0F87F32FE56F4F00F861F3 /* SwiftUI.framework */; };
 		EB0F88052FE56F5000F861F3 /* TimerWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = EB0F87EF2FE56F4F00F861F3 /* TimerWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		EB3AA3432FEBCFE300255D9F /* TimerControlIntentsHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3AA3422FEBCFE300255D9F /* TimerControlIntentsHandlers.swift */; };
+		EB9BFFDA2FEBC01F00C929F4 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */; };
+		EB9BFFDB2FEBC0CE00C929F4 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0B12022FEAC69900D097CA /* AppIntents.framework */; };
 		EBE8986E2F1FC73600EA974E /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = EBE8986D2F1FC73600EA974E /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -52,10 +54,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		EB0B12022FEAC69900D097CA /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		EB0F87EF2FE56F4F00F861F3 /* TimerWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TimerWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		EB0F87F32FE56F4F00F861F3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		EB307FB02F213FA6004668C8 /* FocusTracker.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = FocusTracker.xctestplan; sourceTree = "<group>"; };
+		EB3AA3422FEBCFE300255D9F /* TimerControlIntentsHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerControlIntentsHandlers.swift; sourceTree = "<group>"; };
 		EBE898372F1FC6AE00EA974E /* FocusTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBE898442F1FC6B000EA974E /* FocusTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBE8984E2F1FC6B000EA974E /* FocusTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -73,7 +77,15 @@
 		EB0F880E2FE571BE00F861F3 /* Exceptions for "TimerWidget" folder in "FocusTracker" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				TimerControlIntents.swift,
 				TimerWidgetAttributes.swift,
+			);
+			target = EBE898362F1FC6AE00EA974E /* FocusTracker */;
+		};
+		EB3AA3972FED270300255D9F /* Exceptions for "FocusTracker" folder in "FocusTracker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
 			);
 			target = EBE898362F1FC6AE00EA974E /* FocusTracker */;
 		};
@@ -91,6 +103,9 @@
 		};
 		EBE898392F1FC6AE00EA974E /* FocusTracker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EB3AA3972FED270300255D9F /* Exceptions for "FocusTracker" folder in "FocusTracker" target */,
+			);
 			path = FocusTracker;
 			sourceTree = "<group>";
 		};
@@ -111,8 +126,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB9BFFDB2FEBC0CE00C929F4 /* AppIntents.framework in Frameworks */,
+				EB9BFFDA2FEBC01F00C929F4 /* WidgetKit.framework in Frameworks */,
 				EB0F87F42FE56F4F00F861F3 /* SwiftUI.framework in Frameworks */,
-				EB0F87F22FE56F4F00F861F3 /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -143,6 +159,7 @@
 		EB0F87F02FE56F4F00F861F3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				EB0B12022FEAC69900D097CA /* AppIntents.framework */,
 				EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */,
 				EB0F87F32FE56F4F00F861F3 /* SwiftUI.framework */,
 			);
@@ -152,6 +169,7 @@
 		EBE8982E2F1FC6AE00EA974E = {
 			isa = PBXGroup;
 			children = (
+				EB3AA3422FEBCFE300255D9F /* TimerControlIntentsHandlers.swift */,
 				EB307FB02F213FA6004668C8 /* FocusTracker.xctestplan */,
 				EBE898392F1FC6AE00EA974E /* FocusTracker */,
 				EBE898472F1FC6B000EA974E /* FocusTrackerTests */,
@@ -361,6 +379,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB3AA3432FEBCFE300255D9F /* TimerControlIntentsHandlers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,7 +430,7 @@
 				INFOPLIST_FILE = TimerWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TimerWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -442,7 +461,7 @@
 				INFOPLIST_FILE = TimerWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = TimerWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -592,6 +611,7 @@
 				DEVELOPMENT_TEAM = G5HD44KBJ8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FocusTracker/Info.plist;
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -626,6 +646,7 @@
 				DEVELOPMENT_TEAM = G5HD44KBJ8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FocusTracker/Info.plist;
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

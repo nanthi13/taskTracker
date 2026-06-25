@@ -4,4 +4,10 @@
    <FileRef
       location = "self:">
    </FileRef>
+   <FileRef
+      location = "group:TimerControlIntentsDeclarations.swift">
+   </FileRef>
+   <FileRef
+      location = "group:TimerControlIntentsHandlers.swift">
+   </FileRef>
 </Workspace>

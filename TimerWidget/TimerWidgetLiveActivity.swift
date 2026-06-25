@@ -6,14 +6,30 @@ import SwiftUI
 
 @available(iOS 16.1, *)
 private struct CountdownView: View {
-    let endDate: Date
+    let endDate: Date?
     let isPaused: Bool
+    let remainingSeconds: Int
+    
+    private func format(_ seconds: Int) -> String {
+        let m = seconds / 60
+        let s = seconds % 60
+        return String(format: "%02d:%02d", m, s)
+    }
     
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: isPaused ? "pause.fill" : "timer")
-            Text(endDate, style: .timer)
-                .monospacedDigit()
+            if isPaused {
+                Text(format(remainingSeconds))
+                    .monospacedDigit()
+            } else if let end = endDate {
+                Text(end, style: .timer)
+                    .monospacedDigit()
+            } else {
+                // Fallback if no endDate provided
+                Text(format(remainingSeconds))
+                    .monospacedDigit()
+            }
         }
     }
 }
@@ -22,12 +38,36 @@ private struct CountdownView: View {
 struct TimerWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TimerWidgetAttributes.self) { context in
-            // Lock screen / banner UI
             VStack(alignment: .leading, spacing: 8) {
                 Text(context.state.sessionType == .focusTime ? "Focus Time" : "Break Time")
                     .font(.headline)
-                CountdownView(endDate: context.state.endDate, isPaused: context.state.isPaused)
-                    .font(.title2.weight(.semibold))
+                CountdownView(
+                    endDate: context.state.endDate,
+                    isPaused: context.state.isPaused,
+                    remainingSeconds: context.state.remainingSeconds
+                )
+                .font(.title2.weight(.semibold))
+
+                // Controls row using deep links
+                HStack(spacing: 16) {
+                    Link(destination: URL(string: "focus-tracker://toggle")!) {
+                        HStack {
+                            Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                                .font(.title3)
+                            Text(context.state.isPaused ? "Resume" : "Pause")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Link(destination: URL(string: "focus-tracker://reset")!) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.title3)
+                            Text("Reset")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)
@@ -40,25 +80,43 @@ struct TimerWidgetLiveActivity: Widget {
                     Image(systemName: context.state.sessionType == .focusTime ? "brain.head.profile" : "cup.and.saucer.fill")
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    CountdownView(endDate: context.state.endDate, isPaused: context.state.isPaused)
+                    CountdownView(
+                        endDate: context.state.endDate,
+                        isPaused: context.state.isPaused,
+                        remainingSeconds: context.state.remainingSeconds
+                    )
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    VStack(spacing: 4) {
-                        Text(context.state.sessionType == .focusTime ? "Stay focused" : "Take a breather")
-                            .font(.subheadline)
-                        Text(context.state.endDate, style: .time)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 16) {
+                        Link(destination: URL(string: "focus-tracker://toggle")!) {
+                            HStack {
+                                Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                                Text(context.state.isPaused ? "Resume" : "Pause")
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Link(destination: URL(string: "focus-tracker://reset")!) {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise")
+                                Text("Reset")
+                            }
+                        }
+                        .buttonStyle(.bordered)
                     }
-                    .frame(maxWidth: .infinity)
                 }
             } compactLeading: {
-                Image(systemName: context.state.sessionType == .focusTime ? "timer" : "cup.and.saucer")
+                Link(destination: URL(string: "focus-tracker://toggle")!) {
+                    Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                }
             } compactTrailing: {
-                Text(context.state.endDate, style: .timer)
-                    .monospacedDigit()
+                Link(destination: URL(string: "focus-tracker://reset")!) {
+                    Image(systemName: "arrow.counterclockwise")
+                }
             } minimal: {
-                Text(context.state.endDate, style: .timer)
+                Link(destination: URL(string: "focus-tracker://toggle")!) {
+                    Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                }
             }
             .widgetURL(URL(string: "focus-tracker://live-activity"))
             .keylineTint(Color.red)
@@ -79,15 +137,17 @@ extension TimerWidgetAttributes.ContentState {
         TimerWidgetAttributes.ContentState(
             endDate: .now.addingTimeInterval(25 * 60),
             sessionType: .focusTime,
-            isPaused: false
+            isPaused: false,
+            remainingSeconds: 25 * 60
         )
      }
      
      fileprivate static var starEyes: TimerWidgetAttributes.ContentState {
          TimerWidgetAttributes.ContentState(
-            endDate: .now.addingTimeInterval(5 * 60),
+            endDate: nil,
             sessionType: .breakTime,
-            isPaused: false
+            isPaused: true,
+            remainingSeconds: 5 * 60
          )
      }
 }

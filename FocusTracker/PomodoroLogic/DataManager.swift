@@ -83,7 +83,7 @@ class DataManager: ObservableObject {
         saveTasks()
     }
     
-    // testFocusTaskIsLoggedInTaskHistory fails if this function is used instead of loadMockData
+    // @testFocusTaskIsLoggedInTaskHistory fails if this function is used instead of loadMockData
     func loadMockDataWithDate() {
         tasks = [
             PomodoroTaskModel(name: "Design UI", duration: 600, date: Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 24))!),
@@ -105,7 +105,7 @@ class DataManager: ObservableObject {
         saveTasks()
     }
     
-    // used for testing weekly analytics with a wider date range (spanning x weeks)
+    // used for testing weekly analytics with a wider date range (spanning x weeks from today's date)
     func loadMockDataSpanningWeeks(weeks: Int) {
         let days = weeks * 7
         let calendar = Calendar.current
