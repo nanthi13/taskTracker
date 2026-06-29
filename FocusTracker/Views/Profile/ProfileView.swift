@@ -2,6 +2,8 @@
 
 import SwiftUI
 
+
+// BUG: unable to stay on profile view when timer is running. Keeps changing from profile view to last used view
 struct ProfileView: View {
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
