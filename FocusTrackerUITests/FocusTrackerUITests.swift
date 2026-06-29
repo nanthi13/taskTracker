@@ -60,6 +60,28 @@ final class FocusTrackerUITests: XCTestCase {
         startButton.tap()
     }
     
+    func testBreakTimerAfterGoingHome() {
+        startTimer()
+        waitForMode("Focus Time")
+        
+//        let breakButton = app.buttons["breakButton"]
+//      not needed sinc break is automated
+//        XCTAssertTrue(breakButton.waitForExistence(timeout: 2))
+//        breakButton.tap()
+        
+        waitForMode("Break Time", timeout: 10)
+        // go home and back to app
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        
+        //wait for break time to finish and return to idle
+//        sleep(10)
+        waitForMode("Focus Time", timeout: 10)
+        
+
+        
+    }
+    
     func clearAllTasks() {
         let historyTab = app.tabBars.buttons["History"]
         guard historyTab.exists else { return }
