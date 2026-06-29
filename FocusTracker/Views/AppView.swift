@@ -65,8 +65,8 @@ struct AppView: View {
             }
             .tabItem {
                 Label("Profile", systemImage: "person.crop.circle.fill")
-                    .tag(AppTab.profile)
             }
+            .tag(AppTab.profile)
             
             // TESTING TAB TestView
             // TODO: Remove during production, for testing
