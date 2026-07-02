@@ -1,20 +1,26 @@
-//CREATED  BY: nanthi13 ON 05/02/2026
+// Created by: nanthi13 on 05/02/2026
 
 import SwiftUI
 
+/// Top-level analytics screen:
+/// - Shows daily and weekly focus totals as cards.
+/// - Navigates to a detail chart view with paging and selection.
+/// - Accepts the full task list to compute analytics on demand.
 struct AnalyticsDashboardView: View {
     @State private var path = NavigationPath()
 
     let tasks: [PomodoroTaskModel]
-    
+
+    /// Last 7 daily points (most recent).
     var dailyData: [FocusAnalyticsPoint] {
-        tasks.dailyTotals().suffix(7) // past 7 days
+        tasks.dailyTotals().suffix(7)
     }
-    
+
+    /// Last 6 weekly points (most recent).
     var weeklyData: [FocusAnalyticsPoint] {
-        tasks.weeklyTotals().suffix(6) // past 6 weeks
+        tasks.weeklyTotals().suffix(6)
     }
-    
+
     var body: some View {
         NavigationStack(path: $path) {
             Group {
@@ -24,18 +30,20 @@ struct AnalyticsDashboardView: View {
                         systemImage: "chart.bar",
                         description: Text("Complete a Pomodoro to see your analytics.")
                     )
-                    
-                    
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
                             FocusChartCard(
-                                title: "Daily Focus", data: Array(dailyData), granularity: .daily ) { path.append(ChartGranularity.daily)
-                                }
-                            
-                            FocusChartCard(title: "Weekly Focus", data: Array(weeklyData), granularity: .weekly) {
-                                path.append(ChartGranularity.weekly)
-                            }
+                                title: "Daily Focus",
+                                data: Array(dailyData),
+                                granularity: .daily
+                            ) { path.append(ChartGranularity.daily) }
+
+                            FocusChartCard(
+                                title: "Weekly Focus",
+                                data: Array(weeklyData),
+                                granularity: .weekly
+                            ) { path.append(ChartGranularity.weekly) }
                         }
                         .padding()
                     }
@@ -47,42 +55,35 @@ struct AnalyticsDashboardView: View {
                 case .daily:
                     FocusDetailChartView(
                         title: "Daily Focus",
-                        // pass full series so the detail view can page through older windows
                         data: Array(tasks.dailyTotals()),
                         granularity: .daily,
                         tasks: tasks
                     )
-                    
                 case .weekly:
                     FocusDetailChartView(
                         title: "Weekly Focus",
-                        // pass full series so the detail view can page through older windows
                         data: Array(tasks.weeklyTotals()),
                         granularity: .weekly,
                         tasks: tasks
                     )
                 }
             }
-            
         }
     }
 }
-
-
 
 #Preview {
     let calendar = Calendar.current
     let now = Date()
-    
     let tasks = (0..<20).map {
-            PomodoroTaskModel(
-                name: "Task \($0)",
-                duration: [25, 50, 75].randomElement()!,
-                date: calendar.date(byAdding: .day, value: -Int.random(in: 0...10), to: now)!
-            )
-        }
-    
-    NavigationStack{
+        PomodoroTaskModel(
+            name: "Task \($0)",
+            duration: [25, 50, 75].randomElement()!,
+            date: calendar.date(byAdding: .day, value: -Int.random(in: 0...10), to: now)!
+        )
+    }
+    NavigationStack {
         AnalyticsDashboardView(tasks: tasks)
     }
 }
+

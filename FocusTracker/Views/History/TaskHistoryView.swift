@@ -1,7 +1,10 @@
-//CREATED  BY: nanthi13 ON 20/01/2026
+// Created by: nanthi13 on 20/01/2026
 
 import SwiftUI
 
+/// Displays previously completed focus sessions and allows deletion.
+/// - Exposes a "Clear All" destructive action with confirmation.
+/// - Presents a task detail sheet when a row is tapped.
 struct TaskHistoryView: View {
     @ObservedObject var dataManager: DataManager
     @State private var showClearAlert = false
@@ -15,7 +18,7 @@ struct TaskHistoryView: View {
                         .foregroundColor(.gray)
                         .padding()
                 } else {
-                    ForEach(Array(dataManager.tasks.enumerated()), id: \.element.id) {index, task in
+                    ForEach(Array(dataManager.tasks.enumerated()), id: \.element.id) { _, task in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(task.name)
                                 .font(.headline)
@@ -27,9 +30,7 @@ struct TaskHistoryView: View {
                         .accessibilityIdentifier("taskRow_\(task.name)")
                         .padding(.vertical, 4)
                         .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedTask = task
-                        }
+                        .onTapGesture { selectedTask = task }
                     }
                     .onDelete(perform: deleteTask)
                 }
@@ -52,22 +53,22 @@ struct TaskHistoryView: View {
             Button("Delete All", role: .destructive) {
                 dataManager.clearAllTasks()
             }
-
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("This action cannot be undone.")
         }
-        // Present the TaskDetailView as a sheet instead of overlay
+        // Present the TaskDetailView as a sheet.
         .taskDetailSheet(selectedTask: $selectedTask)
-
     }
 
+    /// Formats seconds as mm:ss.
     func timeString(from seconds: Int) -> String {
         let m = seconds / 60
         let s = seconds % 60
         return String(format: "%02d:%02d", m, s)
     }
 
+    /// Deletes a row from history.
     func deleteTask(at offsets: IndexSet) {
         dataManager.removeTask(at: offsets)
     }
@@ -75,16 +76,14 @@ struct TaskHistoryView: View {
 
 #Preview {
     let mockData = DataManager()
-    
     mockData.tasks = [
         PomodoroTaskModel(name: "Design UI", duration: 25 * 60, date: Date().addingTimeInterval(-3600)),
         PomodoroTaskModel(name: "Write Documentation", duration: 15 * 60, date: Date().addingTimeInterval(-7200)),
         PomodoroTaskModel(name: "Debug Timer", duration: 10 * 60, date: Date().addingTimeInterval(-10800))
-        
     ]
-    
     return NavigationStack {
         TaskHistoryView(dataManager: mockData)
             .accessibilityIdentifier("taskHistoryList")
     }
 }
+

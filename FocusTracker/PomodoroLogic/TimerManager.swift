@@ -1,4 +1,4 @@
-//CREATED  BY: nanthi13 ON 20/01/2026
+// Created by: nanthi13 on 20/01/2026
 
 import Foundation
 import SwiftUI
@@ -7,57 +7,64 @@ internal import Combine
 import UIKit
 import UserNotifications
 
+/// Coordinates focus/break countdowns, app lifecycle handling, and persistence.
+/// - Uses an absolute endDate to recover accurate remaining time after backgrounding.
+/// - Schedules a local notification to fire when the current session ends.
+/// - Shortens durations under "UI_TESTING" to make UI tests deterministic.
 @MainActor
 class TimerManager: ObservableObject {
-    
+
     enum TimerState {
         case idle
         case running
         case paused
     }
-    
+
     enum TimerMode {
         case focus
         case breakTime
     }
-    
+
     @Published private(set) var state: TimerState = .idle
     @Published private(set) var mode: TimerMode = .focus
-    
-    
+
+    /// Remaining seconds in the current session.
     @Published var timeRemaining: Int = 25 * 60
+    /// The current task name (cleared on break completion).
     @Published var taskName: String = ""
-    
+
+    /// Picker-controlled durations (minutes).
     @Published var selectedFocusMinutes: Int
     @Published var selectedBreakMinutes: Int
-    
-    // progress animation
+
+    /// Progress from 0...1 used by the ring animation.
     @Published var animatedProgress: Double = 0
-    
+
     private var timer: Timer?
     private let dataManager: DataManager
 
-    /// The absolute end date for the current running countdown. We use this to
-    /// recalculate remaining time when the app returns from background.
+    /// Absolute end time of the current countdown; used to reconcile after backgrounding.
     private var endDate: Date?
-    
+
     private static let notificationIdentifier = "pomodoro_timer_end"
-    
+
+    /// Focus duration in seconds.
     var focusDuration: Int { selectedFocusMinutes * 60 }
+    /// Break duration in seconds.
     var breakDuration: Int { selectedBreakMinutes * 60 }
-    
+
+    /// True when running under UI tests. Used to shorten durations.
     private var isUITesting: Bool {
         ProcessInfo.processInfo.arguments.contains("UI_TESTING")
     }
 
-    
     init(dataManager: DataManager, focusMinutes: Int = 25, breakMinutes: Int = 5) {
         self.dataManager = dataManager
         self.selectedFocusMinutes = focusMinutes
         self.timeRemaining = focusMinutes * 60
-        selectedBreakMinutes = breakMinutes
+        self.selectedBreakMinutes = breakMinutes
 
-        // Observe app lifecycle so we can reconcile the timer when returning from background
+        // Observe app lifecycle to reconcile timing on return.
         NotificationCenter.default.addObserver(self, selector: #selector(appDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appWillResignActive), name: UIApplication.willResignActiveNotification, object: nil)
     }
@@ -66,44 +73,44 @@ class TimerManager: ObservableObject {
         NotificationCenter.default.removeObserver(self)
         timer?.invalidate()
     }
-    
+
+    /// Starts a new session when idle.
     func startTimer() {
         guard state == .idle else { return }
         startCountDown()
     }
-    
+
+    /// Resumes a paused session.
     func resumeTimer() {
         guard state == .paused else { return }
-        // When resuming, endDate will be set inside startCountDown using the current timeRemaining
         startCountDown(resume: true)
     }
-    
-    // basic timer setup for starting and resuming
+
+    /// Core countdown starter for both fresh and resumed sessions.
     private func startCountDown(resume: Bool = false) {
         state = .running
-        
+
         let intendedDuration = currentDuration
-        
+
         if !resume {
             timeRemaining = intendedDuration
             animatedProgress = 0
-            print("not resuming")
         }
 
-        // Calculate an absolute end date based on the current timeRemaining so we can recover after backgrounding
+        // Establish an absolute end date for reliable background recovery.
         endDate = Date().addingTimeInterval(TimeInterval(timeRemaining))
-        print("calulated endDate: \(String(describing: endDate))")
-        // Schedule a local notification to fire when the timer finishes (useful if the app is backgrounded)
+
+        // Schedule a local notification for session end.
         if let end = endDate {
             scheduleNotification(for: end)
         }
-        
+
         restartTickingTimer(intendedDuration: intendedDuration)
     }
-    
+
+    /// Recreates the 1-second tick timer and attaches it to the common run loop.
     private func restartTickingTimer(intendedDuration: Int) {
         timer?.invalidate()
-        // Use a timer added to the common run loop mode so UI interactions don't pause it.
         let newTimer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor in
@@ -113,20 +120,18 @@ class TimerManager: ObservableObject {
         self.timer = newTimer
         RunLoop.main.add(newTimer, forMode: .common)
     }
-    
-    // reticking the timer and recalculating remaining time based on the absolute endDate
-    // possible bug if the app is backgrounded for a long time and the timer finishes while in background, then when returning to foreground, the tick function will be called and it will recalculate remaining time based on endDate, which may be negative. This is handled by checking if newRemaining <= 0 and calling handleTimerFinished() if so.
+
+    /// Recomputes remaining time from endDate and updates progress/finish state.
     private func tick(intendedDuration: Int) {
-        // Recalculate remaining time from the absolute endDate so the timer remains correct
         guard let end = endDate else {
-            // Fallback to decrementing if endDate isn't available
+            // Fallback (should be rare): decrement until finish.
             guard timeRemaining > 0 else {
                 timer?.invalidate()
                 handleTimerFinished()
                 return
             }
             timeRemaining -= 1
-            withAnimation(.linear(duration:1)) {
+            withAnimation(.linear(duration: 1)) {
                 animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
             }
             return
@@ -135,7 +140,6 @@ class TimerManager: ObservableObject {
         let newRemaining = max(0, Int(end.timeIntervalSinceNow))
         guard newRemaining > 0 else {
             timer?.invalidate()
-            // Ensure timeRemaining shows 0 before finishing
             timeRemaining = 0
             animatedProgress = 1
             handleTimerFinished()
@@ -143,81 +147,68 @@ class TimerManager: ObservableObject {
         }
 
         timeRemaining = newRemaining
-        withAnimation(.linear(duration:1)) {
+        withAnimation(.linear(duration: 1)) {
             animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
         }
     }
-    
-    private func handleTimerFinished() {
-        // Cancel any pending notification since we've completed while app is active
-        cancelScheduledNotification()
 
+    /// Handles end-of-session behavior and transitions between modes.
+    private func handleTimerFinished() {
+        cancelScheduledNotification()
         playSystemSound()
-        
+
         switch mode {
         case .focus:
             completeFocus()
-            // Atomic handoff into break — but use currentDuration so UI tests get 6s.
+            // Transition atomically into break using currentDuration (UI test override respected).
             mode = .breakTime
             timer?.invalidate()
-            
-            let intended = currentDuration // respects UI testing override
+
+            let intended = currentDuration
             timeRemaining = intended
             animatedProgress = 0
-            
+
             endDate = Date().addingTimeInterval(TimeInterval(timeRemaining))
             if let end = endDate {
                 scheduleNotification(for: end)
             }
             state = .running
             restartTickingTimer(intendedDuration: intended)
-            
+
         case .breakTime:
             completeBreak()
         }
-        // Do not clear endDate here when switching into break; we just set it.
     }
-    
+
+    /// Logs a completed focus session.
     private func completeFocus() {
         dataManager.addTask(name: taskName.isEmpty ? "Unnamed task" : taskName, duration: focusDuration)
     }
-    
+
+    /// Resets state and returns to idle focus mode after a break finishes.
     private func completeBreak() {
         mode = .focus
         state = .idle
         timeRemaining = focusDuration
         animatedProgress = 0
         endDate = nil
-        // clear task name for next focus session
         taskName = ""
-        print("break finished")
-    }
-    
-    // kept for potential manual break triggering in future; not used by automatic path now
-    private func startBreakAutomatically() {
-        mode = .breakTime
-        timer?.invalidate()
-        timeRemaining = breakDuration
-        animatedProgress = 0
-        startCountDown()
     }
 
+    /// Pauses an active session and cancels any pending notification.
     func pauseTimer() {
-        // makes sure pause timer
         guard state == .running else { return }
         state = .paused
         timer?.invalidate()
 
-        // Compute remaining time from endDate and clear the endDate so resume uses the stored remaining
         if let end = endDate {
             timeRemaining = max(0, Int(end.timeIntervalSinceNow))
         }
         endDate = nil
-
-        // Cancel scheduled notification because timer is paused
         cancelScheduledNotification()
     }
-    
+
+    /// Resets to idle focus mode and clears pending notifications.
     func resetTimer() {
         state = .idle
         timer?.invalidate()
@@ -225,36 +216,33 @@ class TimerManager: ObservableObject {
         animatedProgress = 0
         timeRemaining = focusDuration
         endDate = nil
-
-        // Cancel any pending notification when resetting
         cancelScheduledNotification()
     }
-    
-    // helper
+
+    /// Effective duration (seconds) for the current mode, shortened during UI tests.
     private var currentDuration: Int {
         if isUITesting { return 6 }
         return mode == .focus ? focusDuration : breakDuration
     }
-    
-    // alert sound
+
+    /// Plays a simple system sound on session completion.
     private func playSystemSound() {
         AudioServicesPlaySystemSound(1005)
     }
 
     // MARK: - Local notification helpers
+
     private func scheduleNotification(for endDate: Date) {
         let interval = endDate.timeIntervalSinceNow
         guard interval > 0 else { return }
 
-        // Avoid capturing UNUserNotificationCenter in @Sendable closures by calling .current() inside closures
         UNUserNotificationCenter.current().getNotificationSettings { settings in
             if settings.authorizationStatus == .authorized {
                 Task { @MainActor in
                     self.createNotificationRequest(after: interval)
                 }
             } else {
-                // Request permission and schedule if granted
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
                     if granted {
                         Task { @MainActor in
                             self.createNotificationRequest(after: interval)
@@ -271,9 +259,7 @@ class TimerManager: ObservableObject {
         content.body = taskName.isEmpty ? "Your focus session has ended." : "\(taskName) has finished."
         content.sound = UNNotificationSound.default
 
-        // Use a time-interval trigger so the notification fires even if the app is backgrounded
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, interval), repeats: false)
-
         let request = UNNotificationRequest(identifier: TimerManager.notificationIdentifier, content: content, trigger: trigger)
 
         UNUserNotificationCenter.current().add(request) { error in
@@ -290,13 +276,13 @@ class TimerManager: ObservableObject {
     }
 
     // MARK: - App lifecycle handlers
+
     @objc private func appWillResignActive(_ notification: Notification) {
         // Invalidate the UI timer; we will reconcile on return using endDate.
         timer?.invalidate()
     }
 
     @objc private func appDidBecomeActive(_ notification: Notification) {
-        // Prefer to reconcile when actively running
         let intendedDuration = currentDuration
 
         if state == .running {
@@ -318,8 +304,7 @@ class TimerManager: ObservableObject {
             return
         }
 
-        // Recovery path: if we have a valid endDate but state isn't .running (race during background),
-        // treat it as running and restart ticking.
+        // Recovery path: endDate exists but state isn't .running (background race).
         if let end = endDate {
             let remaining = max(0, Int(end.timeIntervalSinceNow))
             if remaining > 0 {
@@ -330,7 +315,6 @@ class TimerManager: ObservableObject {
                 }
                 restartTickingTimer(intendedDuration: intendedDuration)
             } else {
-                // finished while backgrounded
                 timer?.invalidate()
                 timeRemaining = 0
                 animatedProgress = 1
@@ -338,5 +322,5 @@ class TimerManager: ObservableObject {
             }
         }
     }
-
 }
+
