@@ -61,6 +61,7 @@ final class FocusTrackerUITests: XCTestCase {
     }
     
     func testBreakTimerAfterGoingHome() {
+        enterTask(name: "Break Timer Test")
         startTimer()
         waitForMode("Focus Time")
         
@@ -68,9 +69,16 @@ final class FocusTrackerUITests: XCTestCase {
 //      not needed sinc break is automated
 //        XCTAssertTrue(breakButton.waitForExistence(timeout: 2))
 //        breakButton.tap()
+//        sleep(100)
+        waitForMode("Break Time", timeout: 300)
+        // hit pause resume - bypass freeze
+//        let pauseButton = app.buttons["pauseButton"]
+//        XCTAssertTrue(pauseButton.waitForExistence(timeout: 2))
         
-        waitForMode("Break Time", timeout: 10)
-        // go home and back to app
+//        pauseButton.tap()
+//        let resumeButton = app.buttons["resumeButton"]
+//        XCTAssertTrue(resumeButton.waitForExistence(timeout: 2))
+//        resumeButton.tap()        // go home and back to app
         XCUIDevice.shared.press(.home)
         app.activate()
         

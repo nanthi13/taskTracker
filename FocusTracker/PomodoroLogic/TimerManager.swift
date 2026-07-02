@@ -87,11 +87,12 @@ class TimerManager: ObservableObject {
         if !resume {
             timeRemaining = intendedDuration
             animatedProgress = 0
+            print("not resuming")
         }
 
         // Calculate an absolute end date based on the current timeRemaining so we can recover after backgrounding
         endDate = Date().addingTimeInterval(TimeInterval(timeRemaining))
-        
+        print("calulated endDate: \(String(describing: endDate))")
         // Schedule a local notification to fire when the timer finishes (useful if the app is backgrounded)
         if let end = endDate {
             scheduleNotification(for: end)
@@ -113,6 +114,8 @@ class TimerManager: ObservableObject {
         RunLoop.main.add(newTimer, forMode: .common)
     }
     
+    // reticking the timer and recalculating remaining time based on the absolute endDate
+    // possible bug if the app is backgrounded for a long time and the timer finishes while in background, then when returning to foreground, the tick function will be called and it will recalculate remaining time based on endDate, which may be negative. This is handled by checking if newRemaining <= 0 and calling handleTimerFinished() if so.
     private func tick(intendedDuration: Int) {
         // Recalculate remaining time from the absolute endDate so the timer remains correct
         guard let end = endDate else {
@@ -154,13 +157,25 @@ class TimerManager: ObservableObject {
         switch mode {
         case .focus:
             completeFocus()
-            startBreakAutomatically()
+            // Atomic handoff into break — but use currentDuration so UI tests get 6s.
+            mode = .breakTime
+            timer?.invalidate()
+            
+            let intended = currentDuration // respects UI testing override
+            timeRemaining = intended
+            animatedProgress = 0
+            
+            endDate = Date().addingTimeInterval(TimeInterval(timeRemaining))
+            if let end = endDate {
+                scheduleNotification(for: end)
+            }
+            state = .running
+            restartTickingTimer(intendedDuration: intended)
             
         case .breakTime:
             completeBreak()
         }
-        // clear endDate when finished
-        endDate = nil
+        // Do not clear endDate here when switching into break; we just set it.
     }
     
     private func completeFocus() {
@@ -172,13 +187,17 @@ class TimerManager: ObservableObject {
         state = .idle
         timeRemaining = focusDuration
         animatedProgress = 0
+        endDate = nil
+     
         print("break finished")
     }
     
-    // sets to proper mode and state, then starts countdown
+    // kept for potential manual break triggering in future; not used by automatic path now
     private func startBreakAutomatically() {
         mode = .breakTime
-        state = .idle
+        timer?.invalidate()
+        timeRemaining = breakDuration
+        animatedProgress = 0
         startCountDown()
     }
 
@@ -276,28 +295,47 @@ class TimerManager: ObservableObject {
     }
 
     @objc private func appDidBecomeActive(_ notification: Notification) {
-        // When returning to the foreground, reconcile remaining time and restart the timer if necessary
-        guard state == .running else { return }
+        // Prefer to reconcile when actively running
         let intendedDuration = currentDuration
+
+        if state == .running {
+            if let end = endDate {
+                let remaining = max(0, Int(end.timeIntervalSinceNow))
+                if remaining <= 0 {
+                    timer?.invalidate()
+                    timeRemaining = 0
+                    animatedProgress = 1
+                    handleTimerFinished()
+                } else {
+                    timeRemaining = remaining
+                    withAnimation(.linear(duration: 0.2)) {
+                        animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
+                    }
+                    restartTickingTimer(intendedDuration: intendedDuration)
+                }
+            }
+            return
+        }
+
+        // Recovery path: if we have a valid endDate but state isn't .running (race during background),
+        // treat it as running and restart ticking.
         if let end = endDate {
             let remaining = max(0, Int(end.timeIntervalSinceNow))
-            if remaining <= 0 {
-                // Timer finished while in the background
-                timer?.invalidate()
-                timeRemaining = 0
-                animatedProgress = 1
-                handleTimerFinished()
-            } else {
-                // Update timeRemaining and animatedProgress immediately for visual sync
+            if remaining > 0 {
+                state = .running
                 timeRemaining = remaining
                 withAnimation(.linear(duration: 0.2)) {
                     animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
                 }
-                // restart the scheduled timer with fresh intendedDuration
                 restartTickingTimer(intendedDuration: intendedDuration)
+            } else {
+                // finished while backgrounded
+                timer?.invalidate()
+                timeRemaining = 0
+                animatedProgress = 1
+                handleTimerFinished()
             }
         }
     }
 
 }
-
