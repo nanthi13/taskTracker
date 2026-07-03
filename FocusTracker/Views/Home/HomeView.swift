@@ -123,7 +123,7 @@ struct HomeView: View {
                     // Start/Pause/Reset/Resume controls.
                     StartStopButtonsView(
                         state: timerManager.state,
-                        start: timerManager.startTimer,
+                        start: { Task { await timerManager.startTimer() } },
                         pause: timerManager.pauseTimer,
                         reset: timerManager.resetTimer,
                         resume: timerManager.resumeTimer,
