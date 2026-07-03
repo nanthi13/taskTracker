@@ -57,6 +57,8 @@ class TimerManager: ObservableObject {
     private var isUITesting: Bool {
         ProcessInfo.processInfo.arguments.contains("UI_TESTING")
     }
+    /// only for testing set to false when not testing
+    private var bugTesting: Bool = false
 
     init(dataManager: DataManager, focusMinutes: Int = 25, breakMinutes: Int = 5) {
         self.dataManager = dataManager
@@ -91,7 +93,6 @@ class TimerManager: ObservableObject {
         state = .running
 
         let intendedDuration = currentDuration
-
         if !resume {
             timeRemaining = intendedDuration
             animatedProgress = 0
@@ -183,6 +184,9 @@ class TimerManager: ObservableObject {
     /// Logs a completed focus session.
     private func completeFocus() {
         dataManager.addTask(name: taskName.isEmpty ? "Unnamed task" : taskName, duration: focusDuration)
+        
+        // provide visual confirmation of completion
+        
     }
 
     /// Resets state and returns to idle focus mode after a break finishes.
@@ -210,18 +214,43 @@ class TimerManager: ObservableObject {
 
     /// Resets to idle focus mode and clears pending notifications.
     func resetTimer() {
-        state = .idle
         timer?.invalidate()
-        mode = .focus
-        animatedProgress = 0
-        timeRemaining = focusDuration
-        endDate = nil
+        completeBreak()
         cancelScheduledNotification()
+    }
+
+    /// Ends the current focus session early and logs the elapsed time.
+    /// - Behavior:
+    ///   - Only applies when in focus mode and not idle.
+    ///   - Cancels timers and notifications.
+    ///   - Computes elapsed = focusDuration - timeRemaining (clamped to 0...focusDuration).
+    ///   - If elapsed > 0, adds a task with that duration.
+    ///   - Returns to idle focus state without transitioning to break.
+    func endFocusSessionEarly() {
+        switch mode {
+        case .focus:
+            if state != .idle{
+                //            guard mode == .focus, state != .idle else { return }
+                let elapsed = max(0, min(focusDuration, focusDuration - timeRemaining))
+                if elapsed > 0 {
+                    let name = taskName.isEmpty ? "Unnamed task" : taskName
+                    dataManager.addTask(name: name, duration: elapsed)
+                }
+            }
+            // Reset to idle focus mode.
+            completeBreak()
+            
+        case .breakTime:
+            resetTimer()
+            return
+        }
     }
 
     /// Effective duration (seconds) for the current mode, shortened during UI tests.
     private var currentDuration: Int {
-        if isUITesting { return 6 }
+        // comment out when not bug testing
+        bugTesting = true
+        if isUITesting || bugTesting { return 6 }
         return mode == .focus ? focusDuration : breakDuration
     }
 
@@ -323,4 +352,3 @@ class TimerManager: ObservableObject {
         }
     }
 }
-
