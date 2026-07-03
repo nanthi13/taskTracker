@@ -81,6 +81,8 @@ class TimerManager: ObservableObject {
     func startTimer() async {
         guard state == .idle else { return }
         startCountDown()
+        
+        // setting enddate for live activity widget
         let end = Date().addingTimeInterval(TimeInterval(focusDuration))
         await LiveActivityManager.shared.startLiveActivity(endDate: end, type: .focusTime, remainingSeconds: focusDuration)
     }
@@ -89,6 +91,8 @@ class TimerManager: ObservableObject {
     func resumeTimer() {
         guard state == .paused else { return }
         startCountDown(resume: true)
+        
+        // update live activity widget with new enddate and remaining seconds
         if let end = endDate {
             Task { await LiveActivityManager.shared.update(endDate: end, isPaused: false, remainingSeconds: timeRemaining) }
         }
@@ -167,18 +171,34 @@ class TimerManager: ObservableObject {
         switch mode {
         case .focus:
             completeFocus()
-            startBreakAutomatically()
+            //            startBreakAutomatically()
+            // Atomic handoff into break — but use currentDuration so UI tests get 6s.
+            mode = .breakTime
+            timer?.invalidate()
+            
+            let intended = currentDuration // respects UI testing override
+            timeRemaining = intended
+            animatedProgress = 0
+            
+            endDate = Date().addingTimeInterval(TimeInterval(timeRemaining))
+            if let end = endDate {
+                scheduleNotification(for: end)
+            }
+            state = .running
+            restartTickingTimer(intendedDuration: intended)
+            
         case .breakTime:
             completeBreak()
         }
-        endDate = nil
+        // Do not clear endDate here when switching into break; we just set it.
+
     }
 
     /// Logs a completed focus session.
     private func completeFocus() {
         dataManager.addTask(name: taskName.isEmpty ? "Unnamed task" : taskName, duration: focusDuration)
         
-        // provide visual confirmation of completion
+        // TODO: provide visual confirmation of completion
         
     }
 
@@ -188,10 +208,12 @@ class TimerManager: ObservableObject {
         state = .idle
         timeRemaining = focusDuration
         animatedProgress = 0
+        endDate = nil
         print("break finished")
         Task { await LiveActivityManager.shared.end() }
     }
     
+    // not used
     private func startBreakAutomatically() {
         mode = .breakTime
         state = .idle
@@ -347,8 +369,7 @@ class TimerManager: ObservableObject {
                 timer?.invalidate()
                 timeRemaining = 0
                 animatedProgress = 1
-                
-              Finished()
+                handleTimerFinished()
             }
         }
     }
