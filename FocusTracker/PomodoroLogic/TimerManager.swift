@@ -198,7 +198,7 @@ class TimerManager: ObservableObject {
     private func completeFocus() {
         dataManager.addTask(name: taskName.isEmpty ? "Unnamed task" : taskName, duration: focusDuration)
         
-        // provide visual confirmation of completion
+        // TODO: provide visual confirmation of completion
         
     }
 
