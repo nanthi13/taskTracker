@@ -1,14 +1,16 @@
-//CREATED  BY: nanthi13 ON 29/01/2026
+// Created by: nanthi13 on 29/01/2026
 
 import SwiftUI
 
+/// Compact card showing the three most recent tasks with a quick link to History.
+/// Tapping a task presents its detail sheet.
 struct RecentTasksCardView: View {
 
     @ObservedObject var dataManager: DataManager
     @Binding var selectedTab: AppTab
     @State private var selectedTask: PomodoroTaskModel? = nil
 
-    // Always take the 3 most recent tasks by date descending
+    /// Three most recent tasks by date descending.
     private var recentThree: [PomodoroTaskModel] {
         dataManager.tasks.sorted(by: { $0.date > $1.date }).prefix(3).map { $0 }
     }
@@ -46,12 +48,9 @@ struct RecentTasksCardView: View {
                             .fill(Color.gray.opacity(0.1))
                     )
                     .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedTask = task
-                    }
+                    .onTapGesture { selectedTask = task }
                 }
 
-                // Optional "See All" button
                 Button("See All") {
                     selectedTab = .history
                 }
@@ -61,12 +60,11 @@ struct RecentTasksCardView: View {
             }
         }
         .padding(.horizontal)
-        // Present TaskDetailView as a sheet instead of overlay
+        // Present TaskDetailView as a sheet.
         .taskDetailSheet(selectedTask: $selectedTask)
-
     }
 
-    // Helper
+    /// Formats seconds as mm:ss.
     func timeString(from seconds: Int) -> String {
         let minutes = seconds / 60
         let seconds = seconds % 60
@@ -75,5 +73,6 @@ struct RecentTasksCardView: View {
 }
 
 #Preview {
-//    RecentTasksCardView()
+    // Covered in HomeView/AppView previews.
 }
+
