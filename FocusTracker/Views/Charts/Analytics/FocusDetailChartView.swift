@@ -1,9 +1,13 @@
-//CREATED  BY: nanthi13 ON 06/02/2026
+// Created by: nanthi13 on 06/02/2026
 
 import Foundation
 import SwiftUI
 import Charts
 
+/// Detail chart view with paging windows and point selection:
+/// - Pages through windows (daily: 7 days, weekly: 6 weeks) using buttons or horizontal swipes.
+/// - Shows an average RuleMark for the visible window.
+/// - Selecting a data point maps to the most recent task in that period and presents a detail sheet.
 struct FocusDetailChartView: View {
     let title: String
     let data: [FocusAnalyticsPoint]
@@ -13,7 +17,7 @@ struct FocusDetailChartView: View {
     @State private var selectedPoint: FocusAnalyticsPoint?
     @State private var selectedTask: PomodoroTaskModel?
 
-    // paging state: 0 = most recent window, 1 = previous window, etc.
+    /// 0 = most recent window, 1 = previous window, etc.
     @State private var page: Int = 0
 
     private var windowSize: Int {
@@ -23,59 +27,45 @@ struct FocusDetailChartView: View {
         }
     }
 
-    // Visible slice of data based on current page (most recent window when page == 0)
+    /// Visible slice for the current page.
     private var visibleData: [FocusAnalyticsPoint] {
         let total = data.count
         guard total > 0 else { return [] }
-
         let size = windowSize
         let endIndex = total - 1 - page * size
-        if endIndex < 0 {
-            return []
-        }
+        if endIndex < 0 { return [] }
         let startIndex = max(0, endIndex - (size - 1))
         return Array(data[startIndex...endIndex])
     }
 
-    // compute average minutes for the visible window
+    /// Average minutes over the visible window.
     private var averageMinutes: Double? {
         guard !visibleData.isEmpty else { return nil }
-        let sum = visibleData.reduce(0.0) { partial, point in
-            partial + Double(point.totalMinutes)
-        }
+        let sum = visibleData.reduce(0.0) { $0 + Double($1.totalMinutes) }
         return sum / Double(visibleData.count)
     }
 
-    // maximum page available (older pages)
+    /// Maximum available page index.
     private var maxPage: Int {
         let total = data.count
         guard total > windowSize else { return 0 }
-        // number of full/partial windows before the most recent one
         let extra = total - windowSize
         return Int((Double(extra) / Double(windowSize)).rounded(.up))
     }
 
     var body: some View {
         VStack(spacing: 12) {
-
-            // header with small pager controls
+            // Header with range and pager controls.
             HStack(spacing: 12) {
-                Text(title)
-                    .font(.headline)
-
+                Text(title).font(.headline)
                 Spacer()
-
-                // show current range label
                 if let first = visibleData.first?.date, let last = visibleData.last?.date {
                     Text(rangeLabel(start: first, end: last))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-
-                // pager buttons
                 HStack(spacing: 8) {
                     Button {
-                        // older (previous)
                         withAnimation {
                             page = min(page + 1, maxPage)
                             selectedPoint = nil
@@ -89,7 +79,6 @@ struct FocusDetailChartView: View {
                     .disabled(page >= maxPage)
 
                     Button {
-                        // newer (next)
                         withAnimation {
                             page = max(page - 1, 0)
                             selectedPoint = nil
@@ -105,15 +94,13 @@ struct FocusDetailChartView: View {
             }
             .padding(.horizontal)
 
-            // Selected value readout
+            // Selected value readout.
             if let selectedPoint {
                 HStack {
                     Text(label(for: selectedPoint.date))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-
                     Spacer()
-
                     Text("\(selectedPoint.totalMinutes) min")
                         .font(.headline)
                 }
@@ -124,8 +111,6 @@ struct FocusDetailChartView: View {
                 ForEach(visibleData, id: \.date) { point in
                     FocusChartMarks.build(point: point, granularity: granularity)
                 }
-
-                // draw an average horizontal rule and annotation for the visible window
                 if let avg = averageMinutes {
                     RuleMark(y: .value("Average", avg))
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [6]))
@@ -161,7 +146,7 @@ struct FocusDetailChartView: View {
             .chartYAxis {
                 AxisMarks(position: .leading)
             }
-            // detect swipe on the Chart itself to page windows (separate from overlay selection)
+            // Swipe to page windows.
             .simultaneousGesture(
                 DragGesture(minimumDistance: 10)
                     .onEnded { value in
@@ -183,8 +168,9 @@ struct FocusDetailChartView: View {
                         }
                     }
             )
+            // Tap/drag selection overlay; also supports swipe paging.
             .chartOverlay { proxy in
-                GeometryReader { geo in
+                GeometryReader { _ in
                     Rectangle()
                         .fill(.clear)
                         .contentShape(Rectangle())
@@ -194,7 +180,6 @@ struct FocusDetailChartView: View {
                                     let location = value.location
                                     if let date: Date = proxy.value(atX: location.x) {
                                         selectedPoint = closestPointInVisible(to: date)
-                                        // map the selected analytics point to a concrete task (most recent on that date/week)
                                         if let selected = selectedPoint {
                                             selectedTask = taskFor(analyticsPoint: selected)
                                         } else {
@@ -203,20 +188,16 @@ struct FocusDetailChartView: View {
                                     }
                                 }
                                 .onEnded { value in
-                                    // detect horizontal swipe to page through windows
                                     let translation = value.translation
                                     let predicted = value.predictedEndTranslation
-                                    // lower threshold and consider swipe velocity/predicted end
                                     let threshold: CGFloat = 40
                                     if translation.width < -threshold || predicted.width < -threshold {
-                                        // swipe left => older
                                         withAnimation {
                                             page = min(page + 1, maxPage)
                                             selectedPoint = nil
                                             selectedTask = nil
                                         }
                                     } else if translation.width > threshold || predicted.width > threshold {
-                                        // swipe right => newer
                                         withAnimation {
                                             page = max(page - 1, 0)
                                             selectedPoint = nil
@@ -234,7 +215,7 @@ struct FocusDetailChartView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        // Present TaskDetailView as a sheet when a concrete task is selected
+        // Presents TaskDetailView when a concrete task is selected.
         .taskDetailSheet(selectedTask: $selectedTask)
     }
 
@@ -262,11 +243,11 @@ struct FocusDetailChartView: View {
 
     private func closestPointInVisible(to date: Date) -> FocusAnalyticsPoint? {
         visibleData.min {
-            abs($0.date.timeIntervalSince(date)) <
-            abs($1.date.timeIntervalSince(date))
+            abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
         }
     }
 
+    /// Maps an analytics point to the most recent task in that period.
     private func taskFor(analyticsPoint: FocusAnalyticsPoint) -> PomodoroTaskModel? {
         let calendar = Calendar.current
         switch granularity {
@@ -282,3 +263,4 @@ struct FocusDetailChartView: View {
         }
     }
 }
+
