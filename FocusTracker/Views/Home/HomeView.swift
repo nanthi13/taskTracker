@@ -127,6 +127,7 @@ struct HomeView: View {
                         pause: timerManager.pauseTimer,
                         reset: timerManager.resetTimer,
                         resume: timerManager.resumeTimer,
+                        endSession: timerManager.endFocusSessionEarly,
                         scrollProxy: proxy
                     )
 

@@ -219,6 +219,41 @@ class TimerManager: ObservableObject {
         cancelScheduledNotification()
     }
 
+    /// Ends the current focus session early and logs the elapsed time.
+    /// - Behavior:
+    ///   - Only applies when in focus mode and not idle.
+    ///   - Cancels timers and notifications.
+    ///   - Computes elapsed = focusDuration - timeRemaining (clamped to 0...focusDuration).
+    ///   - If elapsed > 0, adds a task with that duration.
+    ///   - Returns to idle focus state without transitioning to break.
+    func endFocusSessionEarly() {
+        guard mode == .focus, state != .idle else { return }
+
+        // Stop ticking and cancel notifications.
+        timer?.invalidate()
+        cancelScheduledNotification()
+
+        // Reconcile remaining time if we were running with an endDate.
+        if state == .running, let end = endDate {
+            timeRemaining = max(0, Int(end.timeIntervalSinceNow))
+        }
+
+        let elapsed = max(0, min(focusDuration, focusDuration - timeRemaining))
+        if elapsed > 0 {
+            let name = taskName.isEmpty ? "Unnamed task" : taskName
+            dataManager.addTask(name: name, duration: elapsed)
+        }
+
+        // Reset to idle focus mode.
+        state = .idle
+        mode = .focus
+        animatedProgress = 0
+        timeRemaining = focusDuration
+        endDate = nil
+        // Optionally clear task name to mirror break completion behavior:
+        taskName = ""
+    }
+
     /// Effective duration (seconds) for the current mode, shortened during UI tests.
     private var currentDuration: Int {
         if isUITesting { return 6 }
