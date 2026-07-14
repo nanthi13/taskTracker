@@ -10,7 +10,9 @@ struct FocusChartMarks {
     @ChartContentBuilder
     static func build(
         point: FocusAnalyticsPoint,
-        granularity: ChartGranularity
+        granularity: ChartGranularity,
+        selectedDate: Date? = nil,
+        isCompact: Bool = false
     ) -> some ChartContent {
         
         switch granularity {
@@ -22,9 +24,11 @@ struct FocusChartMarks {
             )
             .cornerRadius(4)
             .annotation(position: .top) {
-                Text("\(point.totalMinutes)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                if !isCompact {
+                    Text("\(point.totalMinutes)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
             
         case .weekly:
@@ -33,7 +37,7 @@ struct FocusChartMarks {
                 x: .value("Date", point.date),
                 y: .value("Minutes", point.totalMinutes)
             )
-            .opacity(0.15)
+            .opacity(isCompact ? 0.12 : 0.15)
             
             // Line for trend
             LineMark(
@@ -41,20 +45,26 @@ struct FocusChartMarks {
                 y: .value("Minutes", point.totalMinutes)
             )
             .interpolationMethod(.catmullRom)
+            .lineStyle(StrokeStyle(lineWidth: isCompact ? 1.5 : 2))
             .foregroundStyle(Color.accentColor)
             
-            // Point to anchor the annotation
+            // Point + selection styling
+            let isSelected = selectedDate.map { Calendar.current.isDate($0, inSameDayAs: point.date) } ?? false
             PointMark(
                 x: .value("Date", point.date),
                 y: .value("Minutes", point.totalMinutes)
             )
             .symbol(.circle)
-            .foregroundStyle(Color.accentColor)
+            .symbolSize(isSelected ? (isCompact ? 40 : 70) : (isCompact ? 20 : 35))
+            .foregroundStyle(isSelected ? Color.accentColor : Color.accentColor.opacity(isCompact ? 0.7 : 0.8))
             .annotation(position: .top) {
-                Text("\(point.totalMinutes)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                if !isCompact, isSelected {
+                    Text("\(point.totalMinutes)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
 }
+

@@ -5,7 +5,7 @@ import SwiftUI
 import Charts
 
 /// Detail chart view with paging windows and point selection:
-/// - Pages through windows (daily: 7 days, weekly: 6 weeks) using buttons or horizontal swipes.
+/// - Pages through windows (daily: 7 days, weekly: month-by-month) using buttons or horizontal swipes.
 /// - Shows an average RuleMark for the visible window.
 /// - Selecting a data point maps to the most recent task in that period and presents a detail sheet.
 struct FocusDetailChartView: View {
@@ -17,25 +17,95 @@ struct FocusDetailChartView: View {
     @State private var selectedPoint: FocusAnalyticsPoint?
     @State private var selectedTask: PomodoroTaskModel?
 
-    /// 0 = most recent window, 1 = previous window, etc.
+    /// 0 = most recent window (current week or current month), 1 = previous window, etc.
     @State private var page: Int = 0
 
     private var windowSize: Int {
         switch granularity {
         case .daily: return 7
-        case .weekly: return 6
+        case .weekly: return 0 // unused with month-based paging
         }
     }
 
     /// Visible slice for the current page.
     private var visibleData: [FocusAnalyticsPoint] {
-        let total = data.count
-        guard total > 0 else { return [] }
-        let size = windowSize
-        let endIndex = total - 1 - page * size
-        if endIndex < 0 { return [] }
-        let startIndex = max(0, endIndex - (size - 1))
-        return Array(data[startIndex...endIndex])
+        switch granularity {
+        case .weekly:
+            // Month-based paging: page 0 = current month, page 1 = previous month, etc.
+            let calendar = Calendar.current
+
+            // Choose a reference date: latest data date or today.
+            let latestDate = data.last?.date ?? Date()
+
+            // Shift by `page` months into the past to determine the target month.
+            guard let targetRef = calendar.date(byAdding: .month, value: -page, to: latestDate),
+                  let monthInterval = calendar.dateInterval(of: .month, for: targetRef)
+            else { return [] }
+
+            let monthStart = monthInterval.start
+            let monthEnd = monthInterval.end
+
+            // Build week starts that fall within the month interval.
+            guard let firstWeekStartRaw = calendar.dateInterval(of: .weekOfYear, for: monthStart)?.start else {
+                return []
+            }
+            let firstWeekStart = calendar.startOfDay(for: firstWeekStartRaw)
+
+            var weekStarts: [Date] = []
+            var cursor = firstWeekStart
+            while cursor < monthEnd {
+                if cursor >= monthStart && cursor < monthEnd {
+                    weekStarts.append(calendar.startOfDay(for: cursor))
+                }
+                guard let next = calendar.date(byAdding: .weekOfYear, value: 1, to: cursor) else { break }
+                cursor = next
+            }
+
+            // Index incoming weekly data by normalized week start.
+            let index: [Date: FocusAnalyticsPoint] = Dictionary(uniqueKeysWithValues:
+                data.map { point in
+                    let ws = calendar.dateInterval(of: .weekOfYear, for: point.date)?.start ?? point.date
+                    let normalized = calendar.startOfDay(for: ws)
+                    return (normalized, FocusAnalyticsPoint(date: normalized, totalMinutes: point.totalMinutes))
+                }
+            )
+
+            // Produce points for the month, zero-filling missing weeks, ordered by week start.
+            let monthPoints: [FocusAnalyticsPoint] = weekStarts.map { ws in
+                if let existing = index[ws] {
+                    return existing
+                } else {
+                    return FocusAnalyticsPoint(date: ws, totalMinutes: 0)
+                }
+            }
+            return monthPoints
+
+        case .daily:
+            // One calendar week per page, exactly 7 days, no overlap.
+            let calendar = Calendar.current
+            let latestDate = data.last?.date ?? Date()
+            guard let targetRef = calendar.date(byAdding: .weekOfYear, value: -page, to: latestDate) else {
+                return []
+            }
+            guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: targetRef) else {
+                return []
+            }
+            let startOfWeek = calendar.startOfDay(for: weekInterval.start)
+            let days: [Date] = (0..<7).compactMap {
+                calendar.date(byAdding: .day, value: $0, to: startOfWeek).map { calendar.startOfDay(for: $0) }
+            }
+            let index: [Date: FocusAnalyticsPoint] = Dictionary(uniqueKeysWithValues:
+                data.map { (calendar.startOfDay(for: $0.date), $0) }
+            )
+            let weekPoints: [FocusAnalyticsPoint] = days.map { day in
+                if let existing = index[day] {
+                    return existing
+                } else {
+                    return FocusAnalyticsPoint(date: day, totalMinutes: 0)
+                }
+            }
+            return weekPoints
+        }
     }
 
     /// Average minutes over the visible window.
@@ -47,10 +117,29 @@ struct FocusDetailChartView: View {
 
     /// Maximum available page index.
     private var maxPage: Int {
-        let total = data.count
-        guard total > windowSize else { return 0 }
-        let extra = total - windowSize
-        return Int((Double(extra) / Double(windowSize)).rounded(.up))
+        switch granularity {
+        case .weekly:
+            // Count distinct months present in the data based on week start dates.
+            let calendar = Calendar.current
+            let monthKeys: [Date] = Array(Set(
+                data.compactMap { point in
+                    let weekStart = calendar.dateInterval(of: .weekOfYear, for: point.date)?.start ?? point.date
+                    let normalized = calendar.startOfDay(for: weekStart)
+                    return calendar.dateInterval(of: .month, for: normalized)?.start
+                }
+            )).sorted()
+            // page 0 = most recent month; so maxPage = count - 1 (non-negative)
+            return max(0, monthKeys.count - 1)
+
+        case .daily:
+            // Number of distinct calendar weeks present in the data,
+            // minus 1 because page 0 is the most recent week.
+            let calendar = Calendar.current
+            let weekStarts: [Date] = Array(Set(
+                data.compactMap { calendar.dateInterval(of: .weekOfYear, for: $0.date)?.start }
+            )).sorted()
+            return max(0, weekStarts.count - 1)
+        }
     }
 
     var body: some View {
@@ -109,7 +198,12 @@ struct FocusDetailChartView: View {
 
             Chart {
                 ForEach(visibleData, id: \.date) { point in
-                    FocusChartMarks.build(point: point, granularity: granularity)
+                    FocusChartMarks.build(
+                        point: point,
+                        granularity: granularity,
+                        selectedDate: selectedPoint?.date,
+                        isCompact: false
+                    )
                 }
                 if let avg = averageMinutes {
                     RuleMark(y: .value("Average", avg))
