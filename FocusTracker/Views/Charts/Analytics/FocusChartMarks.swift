@@ -21,20 +21,40 @@ struct FocusChartMarks {
                 y: .value("Minutes", point.totalMinutes)
             )
             .cornerRadius(4)
+            .annotation(position: .top) {
+                Text("\(point.totalMinutes)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
             
         case .weekly:
+            // Area for fill
             AreaMark(
                 x: .value("Date", point.date),
                 y: .value("Minutes", point.totalMinutes)
             )
             .opacity(0.15)
             
+            // Line for trend
             LineMark(
                 x: .value("Date", point.date),
                 y: .value("Minutes", point.totalMinutes)
             )
-            .symbol(.circle)
             .interpolationMethod(.catmullRom)
+            .foregroundStyle(Color.accentColor)
+            
+            // Point to anchor the annotation
+            PointMark(
+                x: .value("Date", point.date),
+                y: .value("Minutes", point.totalMinutes)
+            )
+            .symbol(.circle)
+            .foregroundStyle(Color.accentColor)
+            .annotation(position: .top) {
+                Text("\(point.totalMinutes)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
