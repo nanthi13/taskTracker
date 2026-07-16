@@ -33,6 +33,14 @@ struct AnalyticsDashboardView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
+
+                            // New: Today's Sessions card
+                            DailySessionsChartCard(tasks: tasks) {
+                                // Optional: navigate to a dedicated "Day Detail" view later.
+                                // For now, push daily detail with current week's window.
+                                path.append(ChartGranularity.daily)
+                            }
+
                             FocusChartCard(
                                 title: "Daily Focus",
                                 data: Array(dailyData),
@@ -86,4 +94,3 @@ struct AnalyticsDashboardView: View {
         AnalyticsDashboardView(tasks: tasks)
     }
 }
-
