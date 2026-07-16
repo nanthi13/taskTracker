@@ -2,12 +2,19 @@
 
 import SwiftUI
 
+/// Route for chart detail navigation carrying granularity and an optional anchor date,
+/// or a day-sessions route that shows all sessions for a single day with paging.
+enum ChartRoute: Hashable {
+    case detail(granularity: ChartGranularity, anchorDate: Date?)
+    case daySessions(anchorDate: Date)
+}
+
 /// Top-level analytics screen:
 /// - Shows daily and weekly focus totals as cards.
 /// - Navigates to a detail chart view with paging and selection.
 /// - Accepts the full task list to compute analytics on demand.
 struct AnalyticsDashboardView: View {
-    @State private var path = NavigationPath()
+    @State private var path: [ChartRoute] = []
 
     let tasks: [PomodoroTaskModel]
 
@@ -34,45 +41,62 @@ struct AnalyticsDashboardView: View {
                     ScrollView {
                         VStack(spacing: 16) {
 
-                            // New: Today's Sessions card
+                            // Today's Sessions card -> DaySessionsDetailView with paging
                             DailySessionsChartCard(tasks: tasks) {
-                                // Optional: navigate to a dedicated "Day Detail" view later.
-                                // For now, push daily detail with current week's window.
-                                path.append(ChartGranularity.daily)
+                                let anchor = Calendar.current.startOfDay(for: Date())
+                                path.append(.daySessions(anchorDate: anchor))
                             }
 
                             FocusChartCard(
                                 title: "Daily Focus",
                                 data: Array(dailyData),
                                 granularity: .daily
-                            ) { path.append(ChartGranularity.daily) }
+                            ) {
+                                // Use the same anchor as the card uses internally: latest data date or today.
+                                let anchor = dailyData.last?.date ?? Date()
+                                path.append(.detail(granularity: .daily, anchorDate: anchor))
+                            }
 
                             FocusChartCard(
                                 title: "Weekly Focus",
                                 data: Array(weeklyData),
                                 granularity: .weekly
-                            ) { path.append(ChartGranularity.weekly) }
+                            ) {
+                                // Weekly ignores anchorDate, pass nil.
+                                path.append(.detail(granularity: .weekly, anchorDate: nil))
+                            }
                         }
                         .padding()
                     }
                 }
             }
             .navigationTitle("Analytics")
-            .navigationDestination(for: ChartGranularity.self) { granularity in
-                switch granularity {
-                case .daily:
-                    FocusDetailChartView(
-                        title: "Daily Focus",
-                        data: Array(tasks.dailyTotals()),
-                        granularity: .daily,
-                        tasks: tasks
-                    )
-                case .weekly:
-                    FocusDetailChartView(
-                        title: "Weekly Focus",
-                        data: Array(tasks.weeklyTotals()),
-                        granularity: .weekly,
-                        tasks: tasks
+            .navigationDestination(for: ChartRoute.self) { route in
+                switch route {
+                case let .detail(granularity, anchorDate):
+                    switch granularity {
+                    case .daily:
+                        FocusDetailChartView(
+                            title: "Daily Focus",
+                            data: Array(tasks.dailyTotals()),
+                            granularity: .daily,
+                            tasks: tasks,
+                            anchorDate: anchorDate
+                        )
+                    case .weekly:
+                        FocusDetailChartView(
+                            title: "Weekly Focus",
+                            data: Array(tasks.weeklyTotals()),
+                            granularity: .weekly,
+                            tasks: tasks,
+                            anchorDate: nil
+                        )
+                    }
+                case let .daySessions(anchorDate):
+                    DaySessionsDetailView(
+                        title: "Day Sessions",
+                        tasks: tasks,
+                        anchorDate: anchorDate
                     )
                 }
             }

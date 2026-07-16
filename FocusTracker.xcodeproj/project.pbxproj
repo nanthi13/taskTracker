@@ -12,6 +12,7 @@
 		EB3AA3432FEBCFE300255D9F /* TimerControlIntentsHandlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3AA3422FEBCFE300255D9F /* TimerControlIntentsHandlers.swift */; };
 		EB9BFFDA2FEBC01F00C929F4 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0F87F12FE56F4F00F861F3 /* WidgetKit.framework */; };
 		EB9BFFDB2FEBC0CE00C929F4 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB0B12022FEAC69900D097CA /* AppIntents.framework */; };
+		EBA991183008CACA00D13778 /* DaySessionsDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA991173008CACA00D13778 /* DaySessionsDetailView.swift */; };
 		EBE8986E2F1FC73600EA974E /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = EBE8986D2F1FC73600EA974E /* .gitignore */; };
 /* End PBXBuildFile section */
 
@@ -60,6 +61,7 @@
 		EB0F87F32FE56F4F00F861F3 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		EB307FB02F213FA6004668C8 /* FocusTracker.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = FocusTracker.xctestplan; sourceTree = "<group>"; };
 		EB3AA3422FEBCFE300255D9F /* TimerControlIntentsHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerControlIntentsHandlers.swift; sourceTree = "<group>"; };
+		EBA991173008CACA00D13778 /* DaySessionsDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaySessionsDetailView.swift; sourceTree = "<group>"; };
 		EBE898372F1FC6AE00EA974E /* FocusTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FocusTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBE898442F1FC6B000EA974E /* FocusTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBE8984E2F1FC6B000EA974E /* FocusTrackerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FocusTrackerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -178,6 +180,7 @@
 				EB0F87F02FE56F4F00F861F3 /* Frameworks */,
 				EBE898382F1FC6AE00EA974E /* Products */,
 				EBE8986D2F1FC73600EA974E /* .gitignore */,
+				EBA991173008CACA00D13778 /* DaySessionsDetailView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -379,6 +382,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBA991183008CACA00D13778 /* DaySessionsDetailView.swift in Sources */,
 				EB3AA3432FEBCFE300255D9F /* TimerControlIntentsHandlers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

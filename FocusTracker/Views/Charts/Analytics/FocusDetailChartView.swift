@@ -14,6 +14,11 @@ struct FocusDetailChartView: View {
     let granularity: ChartGranularity
     let tasks: [PomodoroTaskModel]
 
+    /// Optional anchor for the initial visible window.
+    /// - For .daily: week-of-year containing this date is used for page 0.
+    /// - For .weekly: ignored (month-based paging remains unchanged).
+    let anchorDate: Date?
+
     @State private var selectedPoint: FocusAnalyticsPoint?
     @State private var selectedTask: PomodoroTaskModel?
 
@@ -83,8 +88,12 @@ struct FocusDetailChartView: View {
         case .daily:
             // One calendar week per page, exactly 7 days, no overlap.
             let calendar = Calendar.current
-            let latestDate = data.last?.date ?? Date()
-            guard let targetRef = calendar.date(byAdding: .weekOfYear, value: -page, to: latestDate) else {
+
+            // Use explicit anchor if provided; else use latest data date or today.
+            let baseRef = anchorDate ?? data.last?.date ?? Date()
+
+            // Shift by `page` weeks into the past.
+            guard let targetRef = calendar.date(byAdding: .weekOfYear, value: -page, to: baseRef) else {
                 return []
             }
             guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: targetRef) else {
