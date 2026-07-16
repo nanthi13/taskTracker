@@ -82,6 +82,61 @@ class DataManager: ObservableObject {
         ]
         saveTasks()
     }
+    
+    /// Generates multiple tasks per day across a span of weeks.
+    /// - Parameters:
+    ///   - weeks: Number of past weeks to generate (inclusive of today). Defaults to 2.
+    ///   - tasksPerDay: How many tasks to create for each day. Defaults to 4 (matching prior behavior).
+    ///   - replaceExisting: If true, replaces the current tasks array; otherwise appends. Defaults to false so this can be used together with other loaders.
+    ///   - durationRange: Random duration range in seconds for each generated task. Defaults to 600...1800.
+    ///   - baseNames: Optional pool of names to cycle through for generated tasks.
+    func loadMultipleTasksForSameDay(
+        weeks: Int = 2,
+        tasksPerDay: Int = 4,
+        replaceExisting: Bool = false,
+        durationRange: ClosedRange<Int> = 600...1800,
+        baseNames: [String] = [
+            "Design UI", "Finish Documentation", "Clean up UI", "Simplify code",
+            "Code Review", "Refactor Module", "Fix Bugs", "Write Tests"
+        ]
+    ) {
+        let days = max(0, weeks) * 7
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        var generated: [PomodoroTaskModel] = []
+
+        for offset in 0..<days {
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: today) else { continue }
+
+            // Create multiple tasks that all share the same date (startOfDay),
+            // mimicking "multiple sessions on the same day".
+            for i in 0..<max(1, tasksPerDay) {
+                let name = baseNames[(i + offset) % baseNames.count]
+                let duration = Int.random(in: durationRange)
+
+                // Optionally vary the time within the day to have nicer charts,
+                // but keep the same day. We'll add a small hour/minute offset.
+                var components = DateComponents()
+                components.hour = 9 + ((i * 2) % 8) // distribute between 9:00 and ~23:00
+                components.minute = (i * 7) % 60
+
+                let dateInDay = calendar.date(bySettingHour: components.hour ?? 9,
+                                              minute: components.minute ?? 0,
+                                              second: 0,
+                                              of: day) ?? day
+
+                generated.append(PomodoroTaskModel(name: name, duration: duration, date: dateInDay))
+            }
+        }
+
+        if replaceExisting {
+            tasks = generated.sorted { $0.date < $1.date }
+        } else {
+            tasks.append(contentsOf: generated)
+            tasks.sort { $0.date < $1.date }
+        }
+        saveTasks()
+    }
 
     /// Loads mock data with fixed dates for deterministic charts/tests.
     func loadMockDataWithDate() {

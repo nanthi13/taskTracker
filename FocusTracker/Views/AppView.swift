@@ -59,9 +59,16 @@ struct AppView: View {
             // Development/testing tab: load mock data and inspect charts/history.
             NavigationStack {
                 VStack {
-                    Button("loadData") {
-                        let weeks = 30
-                        dataManager.loadMockDataSpanningWeeks(weeks: weeks)
+                    Button("load data for multiple sessions") {
+                        dataManager.loadMultipleTasksForSameDay()
+                        chartsRefreshID = UUID()
+
+                }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Button("load Data for weeks") {
+//                        let weeks = 30
+                        dataManager.loadMockDataSpanningWeeks(weeks: 30)
                         chartsRefreshID = UUID()
                         selectedTab = .testing
                     }
