@@ -14,82 +14,18 @@ struct FocusChartCard: View {
 
     @State private var animatedData: [FocusAnalyticsPoint] = []
 
-    // Compute a windowed set of points:
+    // Compute a windowed set of points via shared provider:
     // - daily: exactly the current (most recent) calendar week (7 days), zero-filled
     // - weekly: only the weeks within the current (most recent) calendar month, zero-filled
     private var visibleData: [FocusAnalyticsPoint] {
-        let calendar = Calendar.current
+        _ = Calendar.current
+        let anchor = data.last?.date ?? Date()
 
         switch granularity {
         case .daily:
-            // Reference is the latest data date or today
-            let ref = data.last?.date ?? Date()
-            guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: ref) else {
-                return []
-            }
-            let startOfWeek = calendar.startOfDay(for: weekInterval.start)
-            // Build 7 days for the week
-            let days: [Date] = (0..<7).compactMap {
-                calendar.date(byAdding: .day, value: $0, to: startOfWeek).map { calendar.startOfDay(for: $0) }
-            }
-            // Index by startOfDay
-            let index: [Date: FocusAnalyticsPoint] = Dictionary(uniqueKeysWithValues:
-                data.map { (calendar.startOfDay(for: $0.date), $0) }
-            )
-            // Fill missing days with zeros
-            return days.map { day in
-                if let existing = index[day] {
-                    return existing
-                } else {
-                    return FocusAnalyticsPoint(date: day, totalMinutes: 0)
-                }
-            }
-
+            return ChartDataProvider.dailyWeekWindow(data: data, anchorDate: anchor, page: 0)
         case .weekly:
-            // Reference is the latest data date or today
-            let ref = data.last?.date ?? Date()
-            guard let monthInterval = calendar.dateInterval(of: .month, for: ref) else {
-                return []
-            }
-            let monthStart = monthInterval.start
-            let monthEnd = monthInterval.end
-
-            // Find the first week boundary that intersects the month start
-            guard let firstWeekStartRaw = calendar.dateInterval(of: .weekOfYear, for: monthStart)?.start else {
-                return []
-            }
-            let firstWeekStart = calendar.startOfDay(for: firstWeekStartRaw)
-
-            // Build consecutive week starts, filter to those strictly within the month interval
-            var weekStarts: [Date] = []
-            var cursor = firstWeekStart
-            while cursor < monthEnd {
-                if cursor >= monthStart && cursor < monthEnd {
-                    weekStarts.append(calendar.startOfDay(for: cursor))
-                }
-                guard let next = calendar.date(byAdding: .weekOfYear, value: 1, to: cursor) else { break }
-                cursor = next
-            }
-
-            // Index incoming weekly points by their normalized week start
-            let index: [Date: FocusAnalyticsPoint] = Dictionary(uniqueKeysWithValues:
-                data.map { point in
-                    let ws = calendar.dateInterval(of: .weekOfYear, for: point.date)?.start ?? point.date
-                    let normalized = calendar.startOfDay(for: ws)
-                    return (normalized, FocusAnalyticsPoint(date: normalized, totalMinutes: point.totalMinutes))
-                }
-            )
-
-            // Fill missing weeks within the month with zero totals and keep order by week start
-            let monthPoints: [FocusAnalyticsPoint] = weekStarts.map { ws in
-                if let existing = index[ws] {
-                    return existing
-                } else {
-                    return FocusAnalyticsPoint(date: ws, totalMinutes: 0)
-                }
-            }
-
-            return monthPoints
+            return ChartDataProvider.weeklyMonthWindow(data: data, anchorDate: anchor, page: 0)
         }
     }
 
@@ -106,13 +42,7 @@ struct FocusChartCard: View {
                 AxisMarks { value in
                     AxisValueLabel {
                         if let date = value.as(Date.self) {
-                            switch granularity {
-                            case .daily:
-                                Text(date, format: .dateTime.weekday(.abbreviated))
-                            case .weekly:
-                                // Show week start day within the month
-                                Text(date, format: .dateTime.month().day())
-                            }
+                            ChartAxisFormatter.xAxisLabel(for: date, granularity: granularity, compact: true)
                         }
                     }
                 }
