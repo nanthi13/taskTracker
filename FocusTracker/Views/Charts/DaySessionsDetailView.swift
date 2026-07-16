@@ -5,7 +5,8 @@ import Charts
 /// Detail view showing all sessions for a single day, with day-by-day paging.
 /// - One bar per session (duration minutes) on the selected day.
 /// - Swipe horizontally or use chevrons to move to previous/next day within the task date bounds.
-/// - Tap a bar to present the TaskDetailView sheet.
+/// - Tap a bar or a row to present the TaskDetailView sheet.
+/// - Chart + Sessions list are scrollable together.
 struct DaySessionsDetailView: View {
     let title: String
     let tasks: [PomodoroTaskModel]
@@ -47,7 +48,6 @@ struct DaySessionsDetailView: View {
     /// Whether we can page forward (to a later day).
     private var canPageForward: Bool {
         guard let bounds = dateBounds else { return false }
-        // Next page would be currentDate + 1 day
         guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else { return false }
         return calendar.startOfDay(for: nextDate) <= bounds.max
     }
@@ -55,7 +55,6 @@ struct DaySessionsDetailView: View {
     /// Whether we can page backward (to an earlier day).
     private var canPageBackward: Bool {
         guard let bounds = dateBounds else { return false }
-        // Previous page would be currentDate - 1 day
         guard let prevDate = calendar.date(byAdding: .day, value: -1, to: currentDate) else { return false }
         return calendar.startOfDay(for: prevDate) >= bounds.min
     }
@@ -86,7 +85,6 @@ struct DaySessionsDetailView: View {
                         withAnimation {
                             if page > 0, canPageForward { page -= 1 }
                             else if page == 0 {
-                                // Move to the next day only if within bounds
                                 if canPageForward { page = max(0, page - 1) }
                             }
                         }
@@ -119,58 +117,95 @@ struct DaySessionsDetailView: View {
                 .frame(height: 220)
                 .padding(.horizontal)
             } else {
-                Chart(daySessions, id: \.id) { task in
-                    BarMark(
-                        x: .value("Start", task.date),
-                        y: .value("Minutes", max(1, task.duration / 60))
-                    )
-                    .cornerRadius(4)
-                    .foregroundStyle(Color.accentColor.opacity(0.85))
-                    .annotation(position: .top) {
-                        Text("\(max(1, task.duration / 60))")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .chartXAxis {
-                    AxisMarks(values: .automatic(desiredCount: 4)) { value in
-                        AxisValueLabel {
-                            if let date = value.as(Date.self) {
-                                Text(date, format: .dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute())
+                // Make the chart + list scrollable together
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Chart
+                        Chart(daySessions, id: \.id) { task in
+                            BarMark(
+                                x: .value("Start", task.date),
+                                y: .value("Minutes", max(1, task.duration / 60))
+                            )
+                            .cornerRadius(4)
+                            .foregroundStyle(Color.accentColor.opacity(0.85))
+                            .annotation(position: .top) {
+                                Text("\(max(1, task.duration / 60))")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
                             }
                         }
-                    }
-                }
-                .chartYAxis {
-                    AxisMarks(position: .leading)
-                }
-                // Selection overlay: tap to pick nearest session by X
-                .chartOverlay { proxy in
-                    GeometryReader { geo in
-                        Rectangle()
-                            .fill(.clear)
-                            .contentShape(Rectangle())
-                            .gesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onEnded { value in
-                                        let location = value.location
-                                        if let date: Date = proxy.value(atX: location.x) {
-                                            // Pick the closest session by time
-                                            if let nearest = daySessions.min(by: {
-                                                abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
-                                            }) {
-                                                selectedTask = nearest
-                                            }
-                                        }
+                        .chartXAxis {
+                            AxisMarks(values: .automatic(desiredCount: 4)) { value in
+                                AxisValueLabel {
+                                    if let date = value.as(Date.self) {
+                                        Text(date, format: .dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute())
                                     }
-                            )
+                                }
+                            }
+                        }
+                        .chartYAxis {
+                            AxisMarks(position: .leading)
+                        }
+                        // Selection overlay: tap to pick nearest session by X
+                        .chartOverlay { proxy in
+                            GeometryReader { _ in
+                                Rectangle()
+                                    .fill(.clear)
+                                    .contentShape(Rectangle())
+                                    .gesture(
+                                        DragGesture(minimumDistance: 0)
+                                            .onEnded { value in
+                                                let location = value.location
+                                                if let date: Date = proxy.value(atX: location.x) {
+                                                    if let nearest = daySessions.min(by: {
+                                                        abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
+                                                    }) {
+                                                        selectedTask = nearest
+                                                    }
+                                                }
+                                            }
+                                    )
+                            }
+                        }
+                        .frame(height: 280)
+                        .padding(.horizontal)
+
+                        // Sessions list under the chart
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Sessions")
+                                .font(.headline)
+                                .padding(.horizontal)
+
+                            ForEach(daySessions) { task in
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(task.name)
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                        Text("\(max(1, task.duration / 60)) min")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Text(task.date, format: .dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute())
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.horizontal)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.gray.opacity(0.08))
+                                )
+                                .padding(.horizontal)
+                                .contentShape(Rectangle())
+                                .onTapGesture { selectedTask = task }
+                            }
+                        }
+                        .padding(.bottom, 8)
                     }
                 }
-                .frame(height: 280)
-                .padding(.horizontal)
             }
-
-            Spacer()
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
@@ -199,8 +234,8 @@ struct DaySessionsDetailView: View {
 #Preview {
     let calendar = Calendar.current
     let today = calendar.startOfDay(for: Date())
-    let tasks: [PomodoroTaskModel] = (0..<6).map { i in
-        let hour = 9 + (i * 2)
+    let tasks: [PomodoroTaskModel] = (0..<18).map { i in
+        let hour = 8 + (i % 10) // more to show scrolling
         let date = calendar.date(bySettingHour: hour, minute: (i * 7) % 60, second: 0, of: today)!
         return PomodoroTaskModel(name: "Task \(i+1)", duration: [600, 900, 1200].randomElement()!, date: date)
     }
