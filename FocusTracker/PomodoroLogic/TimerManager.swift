@@ -209,6 +209,8 @@ class TimerManager: ObservableObject {
         timeRemaining = focusDuration
         animatedProgress = 0
         endDate = nil
+        // clear task name for next focus session
+        taskName = ""
         print("break finished")
         Task { await LiveActivityManager.shared.end() }
     }
