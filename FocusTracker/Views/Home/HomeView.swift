@@ -22,17 +22,32 @@ struct HomeView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 30) {
-                    Text("Focus Tracker App")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .opacity(timerManager.taskName.isEmpty ? 1 : 0)
-                        .opacity(timerManager.state == .idle ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.25), value: timerManager.taskName)
+                    ZStack {
+                        Text("Focus Tracker App")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .opacity(timerManager.taskName.isEmpty ? 1 : 0)
+                            .opacity(timerManager.state == .idle ? 1 : 0)
+                            .animation(.easeInOut(duration: 0.25), value: timerManager.taskName)
+                        
+                        Text("Focus Time")
+                            .font(.largeTitle)
+                            .accessibilityIdentifier("timerModeLabel")
+                            .id("focusTime")
+                            .opacity(timerManager.state == .running && timerManager.mode == .focus ? 1 : 0)
+                        
+                        Text("Break Time")
+                            .font(.largeTitle)
+                            .accessibilityIdentifier("timerModeLabel")
+                            .id("breakTime")
+                            .opacity(timerManager.mode == .breakTime ? 1 : 0)
+                    }
+                    // fade transistion App name to Focus Time
+                    .animation(.easeInOut(duration: 0.25), value: timerManager.state)
+                    
+                    // fade transition when going from Focus Time to Break Time
+                    .animation(.easeInOut, value: timerManager.mode)
 
-                    Text(timerManager.mode == .breakTime ? "Break Time" : "Focus Time")
-                        .font(.largeTitle)
-                        .accessibilityIdentifier("timerModeLabel")
-                        .id("focusTime")
 
                     // Task name entry when idle in focus mode.
                     if timerManager.state == .idle && timerManager.mode == .focus {
