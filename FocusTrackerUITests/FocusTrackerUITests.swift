@@ -37,9 +37,6 @@ final class FocusTrackerUITests: XCTestCase {
     /// Verifies that the user can type a task name into the text field.
     @MainActor
     func testNamingTask() throws {
-        let app = XCUIApplication()
-        app.launch()
-
         let taskField = app.textFields["taskNameField"]
         XCTAssertTrue(taskField.exists)
 
@@ -93,20 +90,34 @@ final class FocusTrackerUITests: XCTestCase {
     // MARK: - Tests
 
     /// Ensures that the app survives a background/foreground cycle during a break,
-    /// and returns to Focus Time automatically after the (shortened) break ends.
+    /// and returns to Focus (idle) automatically after the (shortened) break ends.
     func testBreakTimerAfterGoingHome() {
+        // Arrange: start a focus session.
         enterTask(name: "Break Timer Test")
         startTimer()
         waitForMode("Focus Time")
 
-        // Focus should auto-transition to Break in UI testing (6s).
-        waitForMode("Break Time", timeout: 300)
+        // Wait for transition into Break Time.
+        waitForMode("Break Time", timeout: 20)
 
-        // Simulate pressing Home and returning to the app.
+        // Immediately background the app so the break completes while in background.
         XCUIDevice.shared.press(.home)
+
+        // Sleep slightly longer than the shortened break duration (6s).
+        sleep(7)
+
+        // Foreground the app.
         app.activate()
 
-        // After break auto-completes, the mode should return to Focus Time (idle).
+        // Assert: we should be back to idle focus state with pickers visible.
+        let focusPicker = app.pickers["focusPicker"]
+        let breakPicker = app.pickers["breakPicker"]
+        XCTAssertTrue(focusPicker.waitForExistence(timeout: 5))
+        XCTAssertTrue(breakPicker.waitForExistence(timeout: 2))
+
+        // Optionally, verify we can start a fresh focus session now.
+        enterTask(name: "New Session After Break")
+        startTimer()
         waitForMode("Focus Time", timeout: 10)
     }
 
