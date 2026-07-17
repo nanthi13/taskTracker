@@ -1,8 +1,15 @@
+// Created by: nanthi13 on 15/07/2026
+
 // ChartDataProvider.swift
 import Foundation
 
 /// Provides reusable calendar windowing and zero-fill logic for chart data.
 enum ChartDataProvider {
+
+    /// Returns the most recent data point's date if available; otherwise returns `Date()`.
+    static func defaultAnchor(for data: [FocusAnalyticsPoint]) -> Date {
+        data.last?.date ?? Date()
+    }
 
     static func dailyWeekWindow(data: [FocusAnalyticsPoint], anchorDate: Date, page: Int) -> [FocusAnalyticsPoint] {
         let calendar = Calendar.current

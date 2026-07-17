@@ -18,9 +18,7 @@ struct FocusChartCard: View {
     // - daily: exactly the current (most recent) calendar week (7 days), zero-filled
     // - weekly: only the weeks within the current (most recent) calendar month, zero-filled
     private var visibleData: [FocusAnalyticsPoint] {
-        _ = Calendar.current
-        let anchor = data.last?.date ?? Date()
-
+        let anchor = ChartDataProvider.defaultAnchor(for: data)
         switch granularity {
         case .daily:
             return ChartDataProvider.dailyWeekWindow(data: data, anchorDate: anchor, page: 0)

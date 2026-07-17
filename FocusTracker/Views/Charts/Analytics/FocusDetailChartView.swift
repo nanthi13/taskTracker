@@ -16,7 +16,7 @@ struct FocusDetailChartView: View {
 
     /// Optional anchor for the initial visible window.
     /// - For .daily: week-of-year containing this date is used for page 0.
-    /// - For .weekly: ignored (month-based paging remains unchanged).
+    /// - For .weekly: ignored (month-based paging remains anchored to most recent).
     let anchorDate: Date?
 
     @State private var selectedPoint: FocusAnalyticsPoint?
@@ -27,19 +27,19 @@ struct FocusDetailChartView: View {
 
     /// Visible slice for the current page (delegated to ChartDataProvider).
     private var visibleData: [FocusAnalyticsPoint] {
-        let fallbackAnchor = data.last?.date ?? Date()
         switch granularity {
         case .daily:
+            let anchor = anchorDate ?? ChartDataProvider.defaultAnchor(for: data)
             return ChartDataProvider.dailyWeekWindow(
                 data: data,
-                anchorDate: anchorDate ?? fallbackAnchor,
+                anchorDate: anchor,
                 page: page
             )
         case .weekly:
-            // For weekly, anchor to most recent data date (or today) and page by month.
+            let anchor = ChartDataProvider.defaultAnchor(for: data)
             return ChartDataProvider.weeklyMonthWindow(
                 data: data,
-                anchorDate: fallbackAnchor,
+                anchorDate: anchor,
                 page: page
             )
         }
