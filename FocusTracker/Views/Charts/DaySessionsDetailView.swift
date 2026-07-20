@@ -70,10 +70,18 @@ struct DaySessionsDetailView: View {
         daySessions.reduce(0) { $0 + max(1, $1.duration / 60) }
     }
 
-    /// True if we can page forward (towards later days).
+    /// True if we can page forward (towards later days, i.e., decrease page toward 0).
+    /// Always allow moving toward the anchor (page == 0). Only clamp when attempting to go beyond the anchor.
     private var canPageForward: Bool {
-        guard let bounds = dateBounds else { return false }
-        guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else { return false }
+        if page > 0 {
+            // Always allow returning toward the anchor day.
+            return true
+        }
+        // When already at anchor (page == 0), only allow moving to even later days if within dataset (not used currently).
+        guard let bounds = dateBounds,
+              let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+            return false
+        }
         return calendar.startOfDay(for: nextDate) <= bounds.max
     }
 
@@ -108,12 +116,14 @@ struct DaySessionsDetailView: View {
                     }
                     .disabled(!canPageBackward)
 
-                    // Page forward (later day)
+                    // Page forward (later day, i.e., toward anchor)
                     Button {
                         withAnimation {
-                            if page > 0, canPageForward { page -= 1 }
-                            else if page == 0 {
-                                if canPageForward { page = max(0, page - 1) }
+                            if page > 0 {
+                                page -= 1
+                            } else if canPageForward {
+                                // Optional: move beyond anchor into future if allowed; not typical
+                                page = max(0, page - 1)
                             }
                         }
                     } label: {
@@ -121,7 +131,7 @@ struct DaySessionsDetailView: View {
                             .padding(8)
                             .background(Circle().fill(Color(.systemGray6)))
                     }
-                    .disabled(!canPageForward || (page == 0 && !canPageForward))
+                    .disabled(!(page > 0 || canPageForward))
                 }
             }
             .padding(.horizontal)
@@ -248,7 +258,9 @@ struct DaySessionsDetailView: View {
                     let threshold: CGFloat = 40
                     if value.translation.width < -threshold {
                         // swipe left -> go to next (later) day if possible
-                        if canPageForward {
+                        if page > 0 {
+                            withAnimation { page -= 1 }
+                        } else if canPageForward {
                             withAnimation { page = max(0, page - 1) }
                         }
                     } else if value.translation.width > threshold {
