@@ -27,21 +27,22 @@ struct FocusChartCard: View {
         }
     }
 
-    // Small padding around the x-domain so first/last labels aren’t clipped.
-    // TODO: reused in detail chart view; consider moving to shared provider.
+    // Modest padding around the x-domain so first/last labels aren’t clipped,
+    // but small enough to avoid shrinking the plot area.
+    // TODO: refactor reused code multiple times
     private var paddedDomain: ClosedRange<Date>? {
         guard let first = animatedData.first?.date, let last = animatedData.last?.date else { return nil }
         let cal = Calendar.current
         switch granularity {
         case .daily:
-            // Pad by ~12 hours on each side
-            let start = cal.date(byAdding: .hour, value: -12, to: first) ?? first
-            let end = cal.date(byAdding: .hour, value: 12, to: last) ?? last
+            // ±8–10 hours is usually enough to pull ticks off the edges
+            let start = cal.date(byAdding: .hour, value: -8, to: first) ?? first
+            let end = cal.date(byAdding: .hour, value: 8, to: last) ?? last
             return start...end
         case .weekly:
-            // Pad by ~3 days on each side for week-start points
-            let start = cal.date(byAdding: .day, value: -3, to: first) ?? first
-            let end = cal.date(byAdding: .day, value: 3, to: last) ?? last
+            // ±2 days is sufficient for week-start ticks
+            let start = cal.date(byAdding: .day, value: -2, to: first) ?? first
+            let end = cal.date(byAdding: .day, value: 2, to: last) ?? last
             return start...end
         }
     }
@@ -55,8 +56,14 @@ struct FocusChartCard: View {
                 // Card uses compact marks; selection is handled in detail view only.
                 FocusChartMarks.build(point: point, granularity: granularity, selectedDate: nil, isCompact: true)
             }
-            // Ensure the scale has a bit of breathing room so trailing labels aren’t clipped.
+            // Slight domain pad so ticks aren’t at edges.
             .chartXScale(domain: paddedDomain ?? (animatedData.first?.date ?? Date())...(animatedData.last?.date ?? Date()))
+            // Add plot padding so axis labels have room without reducing the plot width too much.
+            .chartPlotStyle { plotArea in
+                plotArea
+                    .padding(.leading, 8)
+                    .padding(.trailing, 8)
+            }
             .chartXAxis {
                 // Force all ticks to match our visible dates to avoid pruning (e.g., M W F only).
                 AxisMarks(values: animatedData.map { $0.date }) { value in

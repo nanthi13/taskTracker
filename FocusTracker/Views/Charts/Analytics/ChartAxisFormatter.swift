@@ -16,11 +16,18 @@ enum ChartAxisFormatter {
             let map = ["S", "M", "T", "W", "T", "F", "S"]
             let index = max(1, min(7, weekday)) - 1
             return Text(map[index])
+
         case .weekly:
+            // Display ISO week numbers as x-axis labels.
+            // Use ISO 8601 calendar so week numbers match common expectations (weeks start on Monday).
+            let iso = Calendar(identifier: .iso8601)
+            let week = iso.component(.weekOfYear, from: date)
             if compact {
-                return Text(date, format: .dateTime.month().day())
+                // Compact card: short "W5" style
+                return Text("W\(week)")
             } else {
-                return Text("Week of \(date.formatted(.dateTime.month().day()))")
+                // Detail view: more descriptive "Week 5"
+                return Text("Week \(week)")
             }
         }
     }
@@ -32,6 +39,7 @@ enum ChartAxisFormatter {
         case .daily:
             return "\(startLabel) - \(endLabel)"
         case .weekly:
+            // Keep the existing month/day span for the visible month window.
             return "Weeks: \(startLabel) - \(endLabel)"
         }
     }
