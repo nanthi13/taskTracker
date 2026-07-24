@@ -3,7 +3,8 @@
 import Foundation
 import SwiftUI
 
-struct PomodoroTaskModel: Identifiable, Codable {
+// Equatable conformance allows us to compare tasks for equality, which is useful for updating the UI when tasks change. However may interfere with UUID.
+struct PomodoroTaskModel: Identifiable, Equatable, Codable {
     var id = UUID()
     var name: String
     let duration: Int
