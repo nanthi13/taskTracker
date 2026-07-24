@@ -85,9 +85,9 @@ struct HomeView: View {
 
                     // Duration pickers when idle in focus mode.
                     if timerManager.state == .idle && timerManager.mode == .focus {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .center, spacing: 8) {
                             HStack(alignment: .top) {
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .center) {
                                     Text("Focus Duration")
                                         .font(.headline)
                                     Picker("Focus Duration", selection: $timerManager.selectedFocusMinutes) {
@@ -101,6 +101,7 @@ struct HomeView: View {
                                     .accessibilityIdentifier("focusPicker")
                                 }
                                 Spacer()
+                                
                                 VStack(alignment: .leading) {
                                     Text("Break Duration")
                                         .font(.headline)
@@ -151,7 +152,7 @@ struct HomeView: View {
                         .accessibilityIdentifier("taskHistoryTab")
                 }
             }
-//            .monospaced()
+            .monospaced()
         }
     }
     

@@ -36,6 +36,7 @@ struct TaskHistoryView: View {
                 }
             }
         }
+        .monospaced()
         .accessibilityIdentifier("taskHistoryList")
         .navigationTitle("Task History")
         .toolbar {
