@@ -76,13 +76,23 @@ struct AnalyticsDashboardView: View {
                 case let .detail(granularity, anchorDate):
                     switch granularity {
                     case .daily:
-                        FocusDetailChartView(
-                            title: "Daily Focus",
-                            data: Array(tasks.dailyTotals()),
-                            granularity: .daily,
-                            tasks: tasks,
-                            anchorDate: anchorDate
-                        )
+                        ScrollView {
+                            FocusDetailChartView(
+                                title: "Daily Focus",
+                                data: Array(tasks.dailyTotals()),
+                                granularity: .daily,
+                                tasks: tasks,
+                                anchorDate: anchorDate
+                            )
+                            
+                            // currently hardcoded to show the day sessions for the anchor date if present
+                            
+                            DaySessionsDetailView(
+                                title: "Day Sessions",
+                                tasks: tasks,
+                                anchorDate: anchorDate!
+                            )
+                        }
                     case .weekly:
                         FocusDetailChartView(
                             title: "Weekly Focus",
