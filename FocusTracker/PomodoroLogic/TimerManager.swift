@@ -6,6 +6,8 @@ import AudioToolbox
 internal import Combine
 import UIKit
 import UserNotifications
+import ActivityKit
+import WidgetKit
 
 /// Coordinates focus/break countdowns, app lifecycle handling, and persistence.
 /// - Uses an absolute endDate to recover accurate remaining time after backgrounding.
@@ -57,6 +59,8 @@ class TimerManager: ObservableObject {
     private var isUITesting: Bool {
         ProcessInfo.processInfo.arguments.contains("UI_TESTING")
     }
+    /// only for testing set to false when not testing
+    private var bugTesting: Bool = false
 
     init(dataManager: DataManager, focusMinutes: Int = 25, breakMinutes: Int = 5) {
         self.dataManager = dataManager
@@ -73,17 +77,25 @@ class TimerManager: ObservableObject {
         NotificationCenter.default.removeObserver(self)
         timer?.invalidate()
     }
-
-    /// Starts a new session when idle.
-    func startTimer() {
+    
+    func startTimer() async {
         guard state == .idle else { return }
         startCountDown()
+        
+        // setting enddate for live activity widget
+        let end = Date().addingTimeInterval(TimeInterval(focusDuration))
+        await LiveActivityManager.shared.startLiveActivity(endDate: end, type: .focusTime, remainingSeconds: focusDuration)
     }
 
     /// Resumes a paused session.
     func resumeTimer() {
         guard state == .paused else { return }
         startCountDown(resume: true)
+        
+        // update live activity widget with new enddate and remaining seconds
+        if let end = endDate {
+            Task { await LiveActivityManager.shared.update(endDate: end, isPaused: false, remainingSeconds: timeRemaining) }
+        }
     }
 
     /// Core countdown starter for both fresh and resumed sessions.
@@ -91,7 +103,6 @@ class TimerManager: ObservableObject {
         state = .running
 
         let intendedDuration = currentDuration
-
         if !resume {
             timeRemaining = intendedDuration
             animatedProgress = 0
@@ -160,29 +171,35 @@ class TimerManager: ObservableObject {
         switch mode {
         case .focus:
             completeFocus()
-            // Transition atomically into break using currentDuration (UI test override respected).
+            //            startBreakAutomatically()
+            // Atomic handoff into break — but use currentDuration so UI tests get 6s.
             mode = .breakTime
             timer?.invalidate()
-
-            let intended = currentDuration
+            
+            let intended = currentDuration // respects UI testing override
             timeRemaining = intended
             animatedProgress = 0
-
+            
             endDate = Date().addingTimeInterval(TimeInterval(timeRemaining))
             if let end = endDate {
                 scheduleNotification(for: end)
             }
             state = .running
             restartTickingTimer(intendedDuration: intended)
-
+            
         case .breakTime:
             completeBreak()
         }
+        // Do not clear endDate here when switching into break; we just set it.
+
     }
 
     /// Logs a completed focus session.
     private func completeFocus() {
         dataManager.addTask(name: taskName.isEmpty ? "Unnamed task" : taskName, duration: focusDuration)
+        
+        // TODO: provide visual confirmation of completion
+        
     }
 
     /// Resets state and returns to idle focus mode after a break finishes.
@@ -192,7 +209,20 @@ class TimerManager: ObservableObject {
         timeRemaining = focusDuration
         animatedProgress = 0
         endDate = nil
+        // clear task name for next focus session
         taskName = ""
+        print("break finished")
+        Task { await LiveActivityManager.shared.end() }
+    }
+    
+    // not used
+    private func startBreakAutomatically() {
+        mode = .breakTime
+        state = .idle
+        startCountDown()
+        if let end = endDate {
+            Task { await LiveActivityManager.shared.update(endDate: end, isPaused: false, type: .breakTime, remainingSeconds: timeRemaining) }
+        }
     }
 
     /// Pauses an active session and cancels any pending notification.
@@ -206,22 +236,49 @@ class TimerManager: ObservableObject {
         }
         endDate = nil
         cancelScheduledNotification()
+        Task { await LiveActivityManager.shared.update(endDate: nil, isPaused: true, remainingSeconds: timeRemaining) }
     }
 
     /// Resets to idle focus mode and clears pending notifications.
     func resetTimer() {
-        state = .idle
         timer?.invalidate()
-        mode = .focus
-        animatedProgress = 0
-        timeRemaining = focusDuration
-        endDate = nil
+        completeBreak()
         cancelScheduledNotification()
+        Task { await LiveActivityManager.shared.end() }
+    }
+
+    /// Ends the current focus session early and logs the elapsed time.
+    /// - Behavior:
+    ///   - Only applies when in focus mode and not idle.
+    ///   - Cancels timers and notifications.
+    ///   - Computes elapsed = focusDuration - timeRemaining (clamped to 0...focusDuration).
+    ///   - If elapsed > 0, adds a task with that duration.
+    ///   - Returns to idle focus state without transitioning to break.
+    func endFocusSessionEarly() {
+        switch mode {
+        case .focus:
+            if state != .idle{
+                //            guard mode == .focus, state != .idle else { return }
+                let elapsed = max(0, min(focusDuration, focusDuration - timeRemaining))
+                if elapsed > 0 {
+                    let name = taskName.isEmpty ? "Unnamed task" : taskName
+                    dataManager.addTask(name: name, duration: elapsed)
+                }
+            }
+            // Reset to idle focus mode.
+            completeBreak()
+            
+        case .breakTime:
+            resetTimer()
+            return
+        }
     }
 
     /// Effective duration (seconds) for the current mode, shortened during UI tests.
     private var currentDuration: Int {
-        if isUITesting { return 6 }
+        // comment out when not bug testing, timer 6s
+        bugTesting = true
+        if isUITesting || bugTesting { return 6 }
         return mode == .focus ? focusDuration : breakDuration
     }
 
@@ -261,12 +318,7 @@ class TimerManager: ObservableObject {
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(1, interval), repeats: false)
         let request = UNNotificationRequest(identifier: TimerManager.notificationIdentifier, content: content, trigger: trigger)
-
-        UNUserNotificationCenter.current().add(request) { error in
-            if let err = error {
-                print("Failed to schedule notification: \(err)")
-            }
-        }
+        UNUserNotificationCenter.current().add(request)
     }
 
     private func cancelScheduledNotification() {
@@ -278,7 +330,6 @@ class TimerManager: ObservableObject {
     // MARK: - App lifecycle handlers
 
     @objc private func appWillResignActive(_ notification: Notification) {
-        // Invalidate the UI timer; we will reconcile on return using endDate.
         timer?.invalidate()
     }
 
@@ -289,6 +340,7 @@ class TimerManager: ObservableObject {
             if let end = endDate {
                 let remaining = max(0, Int(end.timeIntervalSinceNow))
                 if remaining <= 0 {
+                  // redundant
                     timer?.invalidate()
                     timeRemaining = 0
                     animatedProgress = 1
@@ -314,6 +366,7 @@ class TimerManager: ObservableObject {
                     animatedProgress = 1 - (Double(timeRemaining) / Double(intendedDuration))
                 }
                 restartTickingTimer(intendedDuration: intendedDuration)
+                Task { await LiveActivityManager.shared.update(endDate: end, isPaused: false, remainingSeconds: timeRemaining) }
             } else {
                 timer?.invalidate()
                 timeRemaining = 0
@@ -323,4 +376,3 @@ class TimerManager: ObservableObject {
         }
     }
 }
-

@@ -11,6 +11,7 @@ struct StartStopButtonsView: View {
     let pause: () -> Void
     let reset: () -> Void
     let resume: () -> Void
+    let endSession: () -> Void
     var scrollProxy: ScrollViewProxy
 
     var body: some View {
@@ -39,9 +40,14 @@ struct StartStopButtonsView: View {
                 Button("Resume", action: resume)
                     .buttonStyle(PomodoroButtonStyle(color: .green))
                     .accessibilityIdentifier("resumeButton")
+                Button("End Session", action: endSession)
+                    .buttonStyle(PomodoroButtonStyle(color: .red))
+                    .accessibilityIdentifier("endSessionButton")
+                    
                 Button("Reset", action: reset)
                     .buttonStyle(PomodoroButtonStyle(color: .red))
                     .accessibilityIdentifier("resetButton")
+                
             }
         }
         .animation(.easeInOut, value: state)

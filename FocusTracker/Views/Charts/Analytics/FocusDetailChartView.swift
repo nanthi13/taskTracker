@@ -5,7 +5,7 @@ import SwiftUI
 import Charts
 
 /// Detail chart view with paging windows and point selection:
-/// - Pages through windows (daily: 7 days, weekly: 6 weeks) using buttons or horizontal swipes.
+/// - Pages through windows (daily: 7 days, weekly: month-by-month) using buttons or horizontal swipes.
 /// - Shows an average RuleMark for the visible window.
 /// - Selecting a data point maps to the most recent task in that period and presents a detail sheet.
 struct FocusDetailChartView: View {
@@ -14,28 +14,35 @@ struct FocusDetailChartView: View {
     let granularity: ChartGranularity
     let tasks: [PomodoroTaskModel]
 
+    /// Optional anchor for the initial visible window.
+    /// - For .daily: week-of-year containing this date is used for page 0.
+    /// - For .weekly: ignored (month-based paging remains anchored to most recent).
+    let anchorDate: Date?
+
     @State private var selectedPoint: FocusAnalyticsPoint?
     @State private var selectedTask: PomodoroTaskModel?
 
-    /// 0 = most recent window, 1 = previous window, etc.
+    /// 0 = most recent window (current week or current month), 1 = previous window, etc.
     @State private var page: Int = 0
 
-    private var windowSize: Int {
-        switch granularity {
-        case .daily: return 7
-        case .weekly: return 6
-        }
-    }
-
-    /// Visible slice for the current page.
+    /// Visible slice for the current page (delegated to ChartDataProvider).
     private var visibleData: [FocusAnalyticsPoint] {
-        let total = data.count
-        guard total > 0 else { return [] }
-        let size = windowSize
-        let endIndex = total - 1 - page * size
-        if endIndex < 0 { return [] }
-        let startIndex = max(0, endIndex - (size - 1))
-        return Array(data[startIndex...endIndex])
+        switch granularity {
+        case .daily:
+            let anchor = anchorDate ?? ChartDataProvider.defaultAnchor(for: data)
+            return ChartDataProvider.dailyWeekWindow(
+                data: data,
+                anchorDate: anchor,
+                page: page
+            )
+        case .weekly:
+            let anchor = ChartDataProvider.defaultAnchor(for: data)
+            return ChartDataProvider.weeklyMonthWindow(
+                data: data,
+                anchorDate: anchor,
+                page: page
+            )
+        }
     }
 
     /// Average minutes over the visible window.
@@ -47,10 +54,12 @@ struct FocusDetailChartView: View {
 
     /// Maximum available page index.
     private var maxPage: Int {
-        let total = data.count
-        guard total > windowSize else { return 0 }
-        let extra = total - windowSize
-        return Int((Double(extra) / Double(windowSize)).rounded(.up))
+        switch granularity {
+        case .daily:
+            return ChartDataProvider.maxDailyPages(data: data)
+        case .weekly:
+            return ChartDataProvider.maxWeeklyPages(data: data)
+        }
     }
 
     var body: some View {
@@ -60,7 +69,7 @@ struct FocusDetailChartView: View {
                 Text(title).font(.headline)
                 Spacer()
                 if let first = visibleData.first?.date, let last = visibleData.last?.date {
-                    Text(rangeLabel(start: first, end: last))
+                    Text(ChartAxisFormatter.rangeLabel(start: first, end: last, granularity: granularity))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -97,7 +106,7 @@ struct FocusDetailChartView: View {
             // Selected value readout.
             if let selectedPoint {
                 HStack {
-                    Text(label(for: selectedPoint.date))
+                    ChartAxisFormatter.xAxisLabel(for: selectedPoint.date, granularity: granularity, compact: false)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -109,7 +118,12 @@ struct FocusDetailChartView: View {
 
             Chart {
                 ForEach(visibleData, id: \.date) { point in
-                    FocusChartMarks.build(point: point, granularity: granularity)
+                    FocusChartMarks.build(
+                        point: point,
+                        granularity: granularity,
+                        selectedDate: selectedPoint?.date,
+                        isCompact: false
+                    )
                 }
                 if let avg = averageMinutes {
                     RuleMark(y: .value("Average", avg))
@@ -138,7 +152,7 @@ struct FocusDetailChartView: View {
                 AxisMarks { value in
                     AxisValueLabel {
                         if let date = value.as(Date.self) {
-                            Text(label(for: date))
+                            ChartAxisFormatter.xAxisLabel(for: date, granularity: granularity, compact: false)
                         }
                     }
                 }
@@ -221,26 +235,6 @@ struct FocusDetailChartView: View {
 
     // MARK: - Helpers
 
-    private func rangeLabel(start: Date, end: Date) -> String {
-        let startLabel = start.formatted(.dateTime.month().day())
-        let endLabel = end.formatted(.dateTime.month().day())
-        switch granularity {
-        case .daily:
-            return "\(startLabel) - \(endLabel)"
-        case .weekly:
-            return "Weeks: \(startLabel) - \(endLabel)"
-        }
-    }
-
-    private func label(for date: Date) -> String {
-        switch granularity {
-        case .daily:
-            return date.formatted(.dateTime.weekday(.wide).month().day())
-        case .weekly:
-            return "Week of \(date.formatted(.dateTime.month().day()))"
-        }
-    }
-
     private func closestPointInVisible(to date: Date) -> FocusAnalyticsPoint? {
         visibleData.min {
             abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
@@ -263,4 +257,3 @@ struct FocusDetailChartView: View {
         }
     }
 }
-
