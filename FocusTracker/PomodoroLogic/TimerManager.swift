@@ -277,7 +277,7 @@ class TimerManager: ObservableObject {
     /// Effective duration (seconds) for the current mode, shortened during UI tests.
     private var currentDuration: Int {
         // comment out when not bug testing, timer 6s
-        bugTesting = true
+//        bugTesting = true
         if isUITesting || bugTesting { return 6 }
         return mode == .focus ? focusDuration : breakDuration
     }
