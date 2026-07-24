@@ -27,6 +27,25 @@ struct FocusChartCard: View {
         }
     }
 
+    // Small padding around the x-domain so first/last labels aren’t clipped.
+    // TODO: reused in detail chart view; consider moving to shared provider.
+    private var paddedDomain: ClosedRange<Date>? {
+        guard let first = animatedData.first?.date, let last = animatedData.last?.date else { return nil }
+        let cal = Calendar.current
+        switch granularity {
+        case .daily:
+            // Pad by ~12 hours on each side
+            let start = cal.date(byAdding: .hour, value: -12, to: first) ?? first
+            let end = cal.date(byAdding: .hour, value: 12, to: last) ?? last
+            return start...end
+        case .weekly:
+            // Pad by ~3 days on each side for week-start points
+            let start = cal.date(byAdding: .day, value: -3, to: first) ?? first
+            let end = cal.date(byAdding: .day, value: 3, to: last) ?? last
+            return start...end
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
@@ -36,11 +55,15 @@ struct FocusChartCard: View {
                 // Card uses compact marks; selection is handled in detail view only.
                 FocusChartMarks.build(point: point, granularity: granularity, selectedDate: nil, isCompact: true)
             }
+            // Ensure the scale has a bit of breathing room so trailing labels aren’t clipped.
+            .chartXScale(domain: paddedDomain ?? (animatedData.first?.date ?? Date())...(animatedData.last?.date ?? Date()))
             .chartXAxis {
-                AxisMarks { value in
+                // Force all ticks to match our visible dates to avoid pruning (e.g., M W F only).
+                AxisMarks(values: animatedData.map { $0.date }) { value in
                     AxisValueLabel {
                         if let date = value.as(Date.self) {
                             ChartAxisFormatter.xAxisLabel(for: date, granularity: granularity, compact: true)
+                                .font(.caption2)
                         }
                     }
                 }

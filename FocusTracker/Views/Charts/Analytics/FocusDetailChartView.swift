@@ -62,6 +62,22 @@ struct FocusDetailChartView: View {
         }
     }
 
+    /// Small padding around the x-domain so first/last labels aren’t clipped.
+    private var paddedDomain: ClosedRange<Date>? {
+        guard let first = visibleData.first?.date, let last = visibleData.last?.date else { return nil }
+        let cal = Calendar.current
+        switch granularity {
+        case .daily:
+            let start = cal.date(byAdding: .hour, value: -12, to: first) ?? first
+            let end = cal.date(byAdding: .hour, value: 12, to: last) ?? last
+            return start...end
+        case .weekly:
+            let start = cal.date(byAdding: .day, value: -3, to: first) ?? first
+            let end = cal.date(byAdding: .day, value: 3, to: last) ?? last
+            return start...end
+        }
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             // Header with range and pager controls.
@@ -122,7 +138,8 @@ struct FocusDetailChartView: View {
                         point: point,
                         granularity: granularity,
                         selectedDate: selectedPoint?.date,
-                        isCompact: false
+                        //temp fix for weekly and daily chart text getting scrambled
+                        isCompact: true
                     )
                 }
                 if let avg = averageMinutes {
@@ -148,8 +165,11 @@ struct FocusDetailChartView: View {
                         }
                 }
             }
+            // Give the x-scale a bit of breathing room to prevent clipping at the ends.
+            .chartXScale(domain: paddedDomain ?? (visibleData.first?.date ?? Date())...(visibleData.last?.date ?? Date()))
             .chartXAxis {
-                AxisMarks { value in
+                // Force all x-axis ticks to align with our visible dates so all weekday initials show.
+                AxisMarks(values: visibleData.map { $0.date }) { value in
                     AxisValueLabel {
                         if let date = value.as(Date.self) {
                             ChartAxisFormatter.xAxisLabel(for: date, granularity: granularity, compact: false)

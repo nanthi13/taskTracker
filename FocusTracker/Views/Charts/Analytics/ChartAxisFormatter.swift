@@ -8,11 +8,14 @@ enum ChartAxisFormatter {
     static func xAxisLabel(for date: Date, granularity: ChartGranularity, compact: Bool) -> Text {
         switch granularity {
         case .daily:
-            if compact {
-                return Text(date, format: .dateTime.weekday(.abbreviated))
-            } else {
-                return Text(date.formatted(.dateTime.weekday(.wide).month().day()))
-            }
+            // Always show single-letter weekday initials: M T W T F S S
+            let cal = Calendar.current
+            let weekday = cal.component(.weekday, from: date) // 1=Sun ... 7=Sat
+            // Map to fixed English initials as requested.
+            // Order: Sun, Mon, Tue, Wed, Thu, Fri, Sat
+            let map = ["S", "M", "T", "W", "T", "F", "S"]
+            let index = max(1, min(7, weekday)) - 1
+            return Text(map[index])
         case .weekly:
             if compact {
                 return Text(date, format: .dateTime.month().day())
