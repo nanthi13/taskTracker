@@ -22,7 +22,6 @@ struct TaskHistoryView: View {
         case all = "All"
         case today = "Today"
         case week = "This Week"
-        case pastMonth = "Past Month"
 
         var id: String { rawValue }
     }
@@ -41,13 +40,6 @@ struct TaskHistoryView: View {
             if let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start,
                let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek) {
                 items = items.filter { $0.date >= startOfWeek && $0.date < endOfWeek }
-            }
-        case .pastMonth:
-            let startOfThisWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start
-            if let startOfThisWeek = startOfThisWeek,
-                let startOfLastWeek = calendar.date(byAdding: .day, value: -7, to: startOfThisWeek),
-                let endOfLastWeek = calendar.date(byAdding: .day, value: 7, to: startOfLastWeek) {
-                items = items.filter { $0.date >= startOfLastWeek && $0.date < endOfLastWeek }
             }
         }
 
