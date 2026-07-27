@@ -206,7 +206,7 @@ final class FocusTrackerUITests: XCTestCase {
         XCTAssertTrue(deleteAllButton.waitForExistence(timeout: 3))
         deleteAllButton.tap()
 
-        let emptyLabel = app.staticTexts["No tasks yet."]
+        let emptyLabel = app.staticTexts["Adjust your filters or try a different search."]
         XCTAssertTrue(emptyLabel.waitForExistence(timeout: 3))
     }
 
