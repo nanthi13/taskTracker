@@ -39,6 +39,31 @@ struct AnalyticsDashboardView: View {
                     )
                 } else {
                     ScrollView {
+                        
+                        HStack(spacing: 10) {
+                            // Total across all time
+                            FocusSummaryCard(
+                                title: "Focus Hrs",
+                                minutes: tasks.totalFocusMinutes(),
+                                systemImage: "clock",
+                                tint: .blue
+                            )
+                            // Today-only metrics
+                            FocusSummaryCard(
+                                title: "Longest Today",
+                                minutes: tasks.longestSessionTodayMinutes(),
+                                systemImage: "clock",
+                                tint: .green
+                            )
+                            FocusSummaryCard(
+                                title: "Avg Today",
+                                minutes: tasks.averageSessionTodayMinutes(),
+                                systemImage: "chart.bar",
+                                tint: .yellow
+                            )
+                        }
+                        .padding(.horizontal)
+                        
                         VStack(spacing: 16) {
 
                             // Today's Sessions card -> DaySessionsDetailView with paging
@@ -128,3 +153,4 @@ struct AnalyticsDashboardView: View {
         AnalyticsDashboardView(tasks: tasks)
     }
 }
+
