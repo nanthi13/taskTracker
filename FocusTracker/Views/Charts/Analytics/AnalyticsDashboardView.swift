@@ -49,12 +49,22 @@ struct AnalyticsDashboardView: View {
                                 tint: .blue
                             )
                             // Today-only metrics
+//                            FocusSummaryCard(
+//                                title: "Longest",
+//                                minutes: tasks.longestSessionTodayMinutes(),
+//                                systemImage: "clock",
+//                                tint: .green
+//                            )
+                            
+                            // TODO: Change to amount of sessions instead
                             FocusSummaryCard(
-                                title: "Longest Today",
-                                minutes: tasks.longestSessionTodayMinutes(),
+                                title: "Sessions Today",
+                                valueText: tasks.amountOfSessionsToday(calendar: Calendar.current),
                                 systemImage: "clock",
                                 tint: .green
+                            
                             )
+                            
                             FocusSummaryCard(
                                 title: "Avg Today",
                                 minutes: tasks.averageSessionTodayMinutes(),
