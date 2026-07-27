@@ -35,6 +35,10 @@ extension Array where Element == PomodoroTaskModel {
     func longestSessionTodayMinutes(calendar: Calendar = .current) -> Int {
         tasksForToday(calendar: calendar).map { Swift.max(1, $0.duration / 60) }.max() ?? 0
     }
+    
+    func amountOfSessionsToday(calendar: Calendar = .current) -> String {
+        return String(tasksForToday(calendar: calendar).count)
+    }
 
     /// Average session length today, in minutes (rounded).
     func averageSessionTodayMinutes(calendar: Calendar = .current) -> Int {

@@ -27,7 +27,7 @@ struct FocusSummaryCard: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             if let systemImage {
                 Image(systemName: systemImage)
                     .font(.subheadline.weight(.semibold)) // smaller icon
@@ -49,8 +49,9 @@ struct FocusSummaryCard: View {
                 Text(title)
                     .font(.caption2) // smaller subtitle
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
                     .minimumScaleFactor(0.7)
+
             }
 
             Spacer(minLength: 0)
