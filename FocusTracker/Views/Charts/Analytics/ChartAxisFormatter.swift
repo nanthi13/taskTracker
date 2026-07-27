@@ -8,16 +8,26 @@ enum ChartAxisFormatter {
     static func xAxisLabel(for date: Date, granularity: ChartGranularity, compact: Bool) -> Text {
         switch granularity {
         case .daily:
-            if compact {
-                return Text(date, format: .dateTime.weekday(.abbreviated))
-            } else {
-                return Text(date.formatted(.dateTime.weekday(.wide).month().day()))
-            }
+            // Always show single-letter weekday initials: M T W T F S S
+            let cal = Calendar.current
+            let weekday = cal.component(.weekday, from: date) // 1=Sun ... 7=Sat
+            // Map to fixed English initials as requested.
+            // Order: Sun, Mon, Tue, Wed, Thu, Fri, Sat
+            let map = ["S", "M", "T", "W", "T", "F", "S"]
+            let index = max(1, min(7, weekday)) - 1
+            return Text(map[index])
+
         case .weekly:
+            // Display ISO week numbers as x-axis labels.
+            // Use ISO 8601 calendar so week numbers match common expectations (weeks start on Monday).
+            let iso = Calendar(identifier: .iso8601)
+            let week = iso.component(.weekOfYear, from: date)
             if compact {
-                return Text(date, format: .dateTime.month().day())
+                // Compact card: short "W5" style
+                return Text("W\(week)")
             } else {
-                return Text("Week of \(date.formatted(.dateTime.month().day()))")
+                // Detail view: more descriptive "Week 5"
+                return Text("Week \(week)")
             }
         }
     }
@@ -29,6 +39,7 @@ enum ChartAxisFormatter {
         case .daily:
             return "\(startLabel) - \(endLabel)"
         case .weekly:
+            // Keep the existing month/day span for the visible month window.
             return "Weeks: \(startLabel) - \(endLabel)"
         }
     }

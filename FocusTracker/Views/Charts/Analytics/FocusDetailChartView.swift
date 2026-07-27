@@ -62,6 +62,22 @@ struct FocusDetailChartView: View {
         }
     }
 
+    /// Small padding around the x-domain so first/last labels aren’t clipped.
+    private var paddedDomain: ClosedRange<Date>? {
+        guard let first = visibleData.first?.date, let last = visibleData.last?.date else { return nil }
+        let cal = Calendar.current
+        switch granularity {
+        case .daily:
+            let start = cal.date(byAdding: .hour, value: -10, to: first) ?? first
+            let end = cal.date(byAdding: .hour, value: 10, to: last) ?? last
+            return start...end
+        case .weekly:
+            let start = cal.date(byAdding: .day, value: -3, to: first) ?? first
+            let end = cal.date(byAdding: .day, value: 3, to: last) ?? last
+            return start...end
+        }
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             // Header with range and pager controls.
@@ -116,114 +132,66 @@ struct FocusDetailChartView: View {
                 .padding(.horizontal)
             }
 
-            Chart {
-                ForEach(visibleData, id: \.date) { point in
-                    FocusChartMarks.build(
-                        point: point,
-                        granularity: granularity,
-                        selectedDate: selectedPoint?.date,
-                        isCompact: false
-                    )
-                }
-                if let avg = averageMinutes {
-                    RuleMark(y: .value("Average", avg))
-                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [6]))
-                        .foregroundStyle(Color.accentColor.gradient)
-                        .annotation(position: .top, alignment: .trailing) {
-                            Text("\(Int(round(avg))) min avg")
-                                .font(.callout)
-                                .bold()
-                                .foregroundColor(.white)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.accentColor)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                                        )
-                                )
-                                .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
-                        }
-                }
-            }
-            .chartXAxis {
-                AxisMarks { value in
-                    AxisValueLabel {
-                        if let date = value.as(Date.self) {
-                            ChartAxisFormatter.xAxisLabel(for: date, granularity: granularity, compact: false)
-                        }
-                    }
-                }
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading)
-            }
-            // Swipe to page windows.
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 10)
-                    .onEnded { value in
-                        let translation = value.translation
-                        let predicted = value.predictedEndTranslation
-                        let threshold: CGFloat = 40
-                        if translation.width < -threshold || predicted.width < -threshold {
-                            withAnimation {
-                                page = min(page + 1, maxPage)
-                                selectedPoint = nil
-                                selectedTask = nil
-                            }
-                        } else if translation.width > threshold || predicted.width > threshold {
-                            withAnimation {
-                                page = max(page - 1, 0)
-                                selectedPoint = nil
-                                selectedTask = nil
-                            }
-                        }
-                    }
-            )
-            // Tap/drag selection overlay; also supports swipe paging.
-            .chartOverlay { proxy in
-                GeometryReader { _ in
-                    Rectangle()
-                        .fill(.clear)
-                        .contentShape(Rectangle())
-                        .highPriorityGesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { value in
-                                    let location = value.location
-                                    if let date: Date = proxy.value(atX: location.x) {
-                                        selectedPoint = closestPointInVisible(to: date)
-                                        if let selected = selectedPoint {
-                                            selectedTask = taskFor(analyticsPoint: selected)
-                                        } else {
-                                            selectedTask = nil
-                                        }
-                                    }
-                                }
-                                .onEnded { value in
-                                    let translation = value.translation
-                                    let predicted = value.predictedEndTranslation
-                                    let threshold: CGFloat = 40
-                                    if translation.width < -threshold || predicted.width < -threshold {
-                                        withAnimation {
-                                            page = min(page + 1, maxPage)
-                                            selectedPoint = nil
-                                            selectedTask = nil
-                                        }
-                                    } else if translation.width > threshold || predicted.width > threshold {
-                                        withAnimation {
-                                            page = max(page - 1, 0)
-                                            selectedPoint = nil
-                                            selectedTask = nil
-                                        }
-                                    }
-                                }
+            // Edge-to-edge chart row with internal plot padding for labels.
+            VStack {
+                Chart {
+                    ForEach(visibleData, id: \.date) { point in
+                        FocusChartMarks.build(
+                            point: point,
+                            granularity: granularity,
+                            selectedDate: selectedPoint?.date,
+                            isCompact: false
                         )
+                    }
+                    if let avg = averageMinutes {
+                        RuleMark(y: .value("Average", avg))
+                            .lineStyle(StrokeStyle(lineWidth: 1, dash: [6]))
+                            .foregroundStyle(Color.accentColor.gradient)
+                            .annotation(position: .top, alignment: .trailing) {
+                                Text("\(Int(round(avg))) min avg")
+                                    .font(.callout)
+                                    .bold()
+                                    .foregroundColor(.white)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.accentColor)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                                            )
+                                    )
+                                    .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
+                            }
+                    }
                 }
+                // Slight domain pad so ticks aren’t at edges.
+                .chartXScale(domain: paddedDomain ?? (visibleData.first?.date ?? Date())...(visibleData.last?.date ?? Date()))
+                // Add plot padding so axis labels have room without reducing the plot width too much.
+                .chartPlotStyle { plotArea in
+                    plotArea
+                        .padding(.leading, 10)
+                        .padding(.trailing, 10)
+                }
+                .chartXAxis {
+                    AxisMarks(values: visibleData.map { $0.date }) { value in
+                        AxisValueLabel {
+                            if let date = value.as(Date.self) {
+                                // Weekly labels match the card style; daily uses its own style as defined in formatter.
+                                let useCompact = (granularity == .weekly)
+                                ChartAxisFormatter.xAxisLabel(for: date, granularity: granularity, compact: useCompact)
+                            }
+                        }
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading)
+                }
+                .frame(height: 320)
+                .frame(maxWidth: .infinity) // Let the chart stretch horizontally
             }
-            .frame(height: 320)
-            .padding(.horizontal)
+            .padding(.horizontal, 0) // Remove outer horizontal padding so it can go edge-to-edge
 
             Spacer()
         }

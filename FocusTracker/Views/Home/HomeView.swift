@@ -29,18 +29,6 @@ struct HomeView: View {
                             .opacity(timerManager.taskName.isEmpty ? 1 : 0)
                             .opacity(timerManager.state == .idle ? 1 : 0)
                             .animation(.easeInOut(duration: 0.25), value: timerManager.taskName)
-                        
-                        Text("Focus Time")
-                            .font(.largeTitle)
-                            .accessibilityIdentifier("timerModeLabel")
-                            .id("focusTime")
-                            .opacity(timerManager.state == .running && timerManager.mode == .focus ? 1 : 0)
-                        
-                        Text("Break Time")
-                            .font(.largeTitle)
-                            .accessibilityIdentifier("timerModeLabel")
-                            .id("breakTime")
-                            .opacity(timerManager.mode == .breakTime ? 1 : 0)
                     }
                     // fade transistion App name to Focus Time
                     .animation(.easeInOut(duration: 0.25), value: timerManager.state)
@@ -72,25 +60,34 @@ struct HomeView: View {
                         Circle()
                             .stroke(Color.gray.opacity(0.2), lineWidth: 10)
                             .frame(width: 220, height: 220)
-
+                        
                         Circle()
                             .trim(from: 0, to: progress)
                             .stroke(timerManager.mode == .breakTime ? Color.blue : Color.green,
                                     style: StrokeStyle(lineWidth: 15, lineCap: .round))
                             .rotationEffect(.degrees(-90))
                             .frame(width: 220, height: 220)
-
-                        Text(timeString(from: timerManager.timeRemaining))
-                            .font(.system(size: 48, weight: .semibold, design: .rounded))
-                            .padding(.vertical)
-                            .accessibilityIdentifier("timerTimeLabel")
+                        VStack {
+                            Text(timeString(from: timerManager.timeRemaining))
+                                .font(.system(size: 48, weight: .semibold, design: .rounded))
+                            //                                .padding(.vertical)
+                                .accessibilityIdentifier("timerTimeLabel")
+                            
+                            // CONDITIONAL: Show "Focus Time" or "Break Time" based on the current mode.
+                            Text(timerManager.mode == .focus ? "Focus Time" : "Break Time")
+                            // id is used for autoscrolling when pressing start
+                                .id(timerManager.mode == .focus ? "focusTime" : "breakTime")
+                                .font(.system(size: 16, design: .monospaced))
+                                .italic()
+                                .accessibilityIdentifier("timerModeLabel")
+                        }
                     }
 
                     // Duration pickers when idle in focus mode.
                     if timerManager.state == .idle && timerManager.mode == .focus {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .center, spacing: 8) {
                             HStack(alignment: .top) {
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .center) {
                                     Text("Focus Duration")
                                         .font(.headline)
                                     Picker("Focus Duration", selection: $timerManager.selectedFocusMinutes) {
@@ -104,6 +101,7 @@ struct HomeView: View {
                                     .accessibilityIdentifier("focusPicker")
                                 }
                                 Spacer()
+                                
                                 VStack(alignment: .leading) {
                                     Text("Break Duration")
                                         .font(.headline)
@@ -154,8 +152,10 @@ struct HomeView: View {
                         .accessibilityIdentifier("taskHistoryTab")
                 }
             }
+            .monospaced()
         }
     }
+    
 
     /// Formats seconds as mm:ss.
     func timeString(from seconds: Int) -> String {

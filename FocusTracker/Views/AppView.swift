@@ -85,6 +85,7 @@ struct AppView: View {
             .tabItem { Label("Testing", systemImage: "wrench.and.screwdriver.fill") }
             .tag(AppTab.testing)
         }
+        .monospaced()
         .environmentObject(dataManager)
     }
 

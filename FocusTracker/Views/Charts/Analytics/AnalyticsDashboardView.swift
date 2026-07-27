@@ -39,6 +39,41 @@ struct AnalyticsDashboardView: View {
                     )
                 } else {
                     ScrollView {
+                        
+                        HStack(spacing: 10) {
+                            // Total across all time
+                            FocusSummaryCard(
+                                title: "Focus Hrs",
+                                minutes: tasks.totalFocusMinutes(),
+                                systemImage: "clock",
+                                tint: .blue
+                            )
+                            // Today-only metrics
+//                            FocusSummaryCard(
+//                                title: "Longest",
+//                                minutes: tasks.longestSessionTodayMinutes(),
+//                                systemImage: "clock",
+//                                tint: .green
+//                            )
+                            
+                            // TODO: Change to amount of sessions instead
+                            FocusSummaryCard(
+                                title: "Sessions Today",
+                                valueText: tasks.amountOfSessionsToday(calendar: Calendar.current),
+                                systemImage: "clock",
+                                tint: .green
+                            
+                            )
+                            
+                            FocusSummaryCard(
+                                title: "Avg Today",
+                                minutes: tasks.averageSessionTodayMinutes(),
+                                systemImage: "chart.bar",
+                                tint: .yellow
+                            )
+                        }
+                        .padding(.horizontal)
+                        
                         VStack(spacing: 16) {
 
                             // Today's Sessions card -> DaySessionsDetailView with paging
@@ -128,3 +163,4 @@ struct AnalyticsDashboardView: View {
         AnalyticsDashboardView(tasks: tasks)
     }
 }
+

@@ -196,7 +196,7 @@ class TimerManager: ObservableObject {
 
     /// Logs a completed focus session.
     private func completeFocus() {
-        dataManager.addTask(name: taskName.isEmpty ? "Unnamed task" : taskName, duration: focusDuration)
+        dataManager.addTask(name: taskName.isEmpty ? "Untitled" : taskName, duration: focusDuration)
         
         // TODO: provide visual confirmation of completion
         
@@ -261,7 +261,7 @@ class TimerManager: ObservableObject {
                 //            guard mode == .focus, state != .idle else { return }
                 let elapsed = max(0, min(focusDuration, focusDuration - timeRemaining))
                 if elapsed > 0 {
-                    let name = taskName.isEmpty ? "Unnamed task" : taskName
+                    let name = taskName.isEmpty ? "Untitled" : taskName
                     dataManager.addTask(name: name, duration: elapsed)
                 }
             }
