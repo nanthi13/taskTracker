@@ -1,6 +1,6 @@
 // ProfileStore.swift
 import Foundation
-import SwiftUI
+internal import Combine
 
 @MainActor
 final class ProfileStore: ObservableObject {
