@@ -11,11 +11,13 @@ struct AppView: View {
 
     @StateObject private var dataManager: DataManager
     @StateObject private var timerManager: TimerManager
+    @StateObject private var profileStore: ProfileStore
 
     init() {
         let manager = DataManager()
         _dataManager = StateObject(wrappedValue: manager)
         _timerManager = StateObject(wrappedValue: TimerManager(dataManager: manager))
+        _profileStore = StateObject(wrappedValue: ProfileStore())
     }
 
     // Picker defaults (unused externally; TimerManager owns active values).
@@ -87,6 +89,7 @@ struct AppView: View {
         }
         .monospaced()
         .environmentObject(dataManager)
+        .environmentObject(profileStore)
     }
 
     /// Formats seconds as mm:ss.
@@ -100,4 +103,3 @@ struct AppView: View {
 #Preview {
     AppView()
 }
-
