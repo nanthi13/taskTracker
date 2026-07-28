@@ -62,22 +62,6 @@ struct FocusDetailChartView: View {
         }
     }
 
-    /// Small padding around the x-domain so first/last labels aren’t clipped.
-    private var paddedDomain: ClosedRange<Date>? {
-        guard let first = visibleData.first?.date, let last = visibleData.last?.date else { return nil }
-        let cal = Calendar.current
-        switch granularity {
-        case .daily:
-            let start = cal.date(byAdding: .hour, value: -10, to: first) ?? first
-            let end = cal.date(byAdding: .hour, value: 10, to: last) ?? last
-            return start...end
-        case .weekly:
-            let start = cal.date(byAdding: .day, value: -3, to: first) ?? first
-            let end = cal.date(byAdding: .day, value: 3, to: last) ?? last
-            return start...end
-        }
-    }
-
     var body: some View {
         VStack(spacing: 12) {
             // Header with range and pager controls.
@@ -167,7 +151,16 @@ struct FocusDetailChartView: View {
                     }
                 }
                 // Slight domain pad so ticks aren’t at edges.
-                .chartXScale(domain: paddedDomain ?? (visibleData.first?.date ?? Date())...(visibleData.last?.date ?? Date()))
+                .chartXScale(
+                    domain: {
+                        if let first = visibleData.first?.date, let last = visibleData.last?.date {
+                            return ChartPadding.paddedDomain(for: granularity, first: first, last: last)
+                        } else {
+                            let now = Date()
+                            return now...now
+                        }
+                    }()
+                )
                 // Add plot padding so axis labels have room without reducing the plot width too much.
                 .chartPlotStyle { plotArea in
                     plotArea
@@ -225,3 +218,4 @@ struct FocusDetailChartView: View {
         }
     }
 }
+

@@ -27,26 +27,6 @@ struct FocusChartCard: View {
         }
     }
 
-    // Modest padding around the x-domain so first/last labels aren’t clipped,
-    // but small enough to avoid shrinking the plot area.
-    // TODO: refactor reused code multiple times
-    private var paddedDomain: ClosedRange<Date>? {
-        guard let first = animatedData.first?.date, let last = animatedData.last?.date else { return nil }
-        let cal = Calendar.current
-        switch granularity {
-        case .daily:
-            // ±8–10 hours is usually enough to pull ticks off the edges
-            let start = cal.date(byAdding: .hour, value: -8, to: first) ?? first
-            let end = cal.date(byAdding: .hour, value: 8, to: last) ?? last
-            return start...end
-        case .weekly:
-            // ±2 days is sufficient for week-start ticks
-            let start = cal.date(byAdding: .day, value: -2, to: first) ?? first
-            let end = cal.date(byAdding: .day, value: 2, to: last) ?? last
-            return start...end
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
@@ -57,7 +37,16 @@ struct FocusChartCard: View {
                 FocusChartMarks.build(point: point, granularity: granularity, selectedDate: nil, isCompact: true)
             }
             // Slight domain pad so ticks aren’t at edges.
-            .chartXScale(domain: paddedDomain ?? (animatedData.first?.date ?? Date())...(animatedData.last?.date ?? Date()))
+            .chartXScale(
+                domain: {
+                    if let first = animatedData.first?.date, let last = animatedData.last?.date {
+                        return ChartPadding.paddedDomain(for: granularity, first: first, last: last)
+                    } else {
+                        let now = Date()
+                        return now...now
+                    }
+                }()
+            )
             // Add plot padding so axis labels have room without reducing the plot width too much.
             .chartPlotStyle { plotArea in
                 plotArea
