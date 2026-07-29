@@ -43,11 +43,11 @@ struct TaskHistoryView: View {
                 items = items.filter { $0.date >= startOfWeek && $0.date < endOfWeek }
             }
         case .pastMonth:
-            let startOfThisWeek = calendar.dateInterval(of: .weekOfYear, for: Date())?.start
-            if let startOfThisWeek = startOfThisWeek,
-                let startOfLastWeek = calendar.date(byAdding: .day, value: -7, to: startOfThisWeek),
-                let endOfLastWeek = calendar.date(byAdding: .day, value: 7, to: startOfLastWeek) {
-                items = items.filter { $0.date >= startOfLastWeek && $0.date < endOfLastWeek }
+            let startOfThisMonth = calendar.dateInterval(of: .month, for: Date())?.start
+            if let startOfThisMonth = startOfThisMonth,
+                let startOfLastMonth = calendar.date(byAdding: .month, value: -1, to: startOfThisMonth),
+                let endOfLastMonth = calendar.date(byAdding: .month, value: 1, to: startOfLastMonth) {
+                items = items.filter { $0.date >= startOfLastMonth && $0.date < endOfLastMonth }
             }
         }
 
