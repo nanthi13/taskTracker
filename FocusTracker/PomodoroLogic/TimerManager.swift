@@ -62,6 +62,9 @@ class TimerManager: ObservableObject {
     /// only for testing set to false when not testing
     private var bugTesting: Bool = false
 
+    /// How long to animate the final progress to 1.0 before transitioning.
+    private let finishAnimationDuration: TimeInterval = 0.4
+
     init(dataManager: DataManager, focusMinutes: Int = 25, breakMinutes: Int = 5) {
         self.dataManager = dataManager
         self.selectedFocusMinutes = focusMinutes
@@ -138,7 +141,14 @@ class TimerManager: ObservableObject {
             // Fallback (should be rare): decrement until finish.
             guard timeRemaining > 0 else {
                 timer?.invalidate()
-                handleTimerFinished()
+                // Animate the final completion before transitioning.
+                withAnimation(.linear(duration: finishAnimationDuration)) {
+                    animatedProgress = 1
+                }
+                // Delay the finish handling to let the animation complete.
+                DispatchQueue.main.asyncAfter(deadline: .now() + finishAnimationDuration) { [weak self] in
+                    self?.handleTimerFinished()
+                }
                 return
             }
             timeRemaining -= 1
@@ -152,8 +162,14 @@ class TimerManager: ObservableObject {
         guard newRemaining > 0 else {
             timer?.invalidate()
             timeRemaining = 0
-            animatedProgress = 1
-            handleTimerFinished()
+            // Animate the final completion before transitioning.
+            withAnimation(.linear(duration: finishAnimationDuration)) {
+                animatedProgress = 1
+            }
+            // Delay the finish handling to let the animation complete.
+            DispatchQueue.main.asyncAfter(deadline: .now() + finishAnimationDuration) { [weak self] in
+                self?.handleTimerFinished()
+            }
             return
         }
 
@@ -340,11 +356,15 @@ class TimerManager: ObservableObject {
             if let end = endDate {
                 let remaining = max(0, Int(end.timeIntervalSinceNow))
                 if remaining <= 0 {
-                  // redundant
+                    // Animate completion then handle finish.
                     timer?.invalidate()
                     timeRemaining = 0
-                    animatedProgress = 1
-                    handleTimerFinished()
+                    withAnimation(.linear(duration: finishAnimationDuration)) {
+                        animatedProgress = 1
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + finishAnimationDuration) { [weak self] in
+                        self?.handleTimerFinished()
+                    }
                 } else {
                     timeRemaining = remaining
                     withAnimation(.linear(duration: 0.2)) {
@@ -368,11 +388,17 @@ class TimerManager: ObservableObject {
                 restartTickingTimer(intendedDuration: intendedDuration)
                 Task { await LiveActivityManager.shared.update(endDate: end, isPaused: false, remainingSeconds: timeRemaining) }
             } else {
+                // Animate completion then handle finish.
                 timer?.invalidate()
                 timeRemaining = 0
-                animatedProgress = 1
-                handleTimerFinished()
+                withAnimation(.linear(duration: finishAnimationDuration)) {
+                    animatedProgress = 1
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + finishAnimationDuration) { [weak self] in
+                    self?.handleTimerFinished()
+                }
             }
         }
     }
 }
+
