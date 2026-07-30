@@ -48,13 +48,6 @@ struct AnalyticsDashboardView: View {
                                 systemImage: "clock",
                                 tint: .blue
                             )
-                            // Today-only metrics
-//                            FocusSummaryCard(
-//                                title: "Longest",
-//                                minutes: tasks.longestSessionTodayMinutes(),
-//                                systemImage: "clock",
-//                                tint: .green
-//                            )
                             
                             // TODO: Change to amount of sessions instead
                             FocusSummaryCard(
@@ -77,25 +70,26 @@ struct AnalyticsDashboardView: View {
                         VStack(spacing: 16) {
 
                             // Today's Sessions card -> DaySessionsDetailView with paging
-                            DailySessionsChartCard(tasks: tasks) {
+                            FocusCardView(
+                                title: "Today's Sessions",
+                                mode: .todaySessions(tasks)
+                            ) {
                                 let anchor = Calendar.current.startOfDay(for: Date())
                                 path.append(.daySessions(anchorDate: anchor))
                             }
 
-                            FocusChartCard(
+                            FocusCardView(
                                 title: "Daily Focus",
-                                data: Array(dailyData),
-                                granularity: .daily
+                                mode: .dailyTotals(Array(dailyData))
                             ) {
                                 // Use the same anchor as the card uses internally: latest data date or today.
                                 let anchor = dailyData.last?.date ?? Date()
                                 path.append(.detail(granularity: .daily, anchorDate: anchor))
                             }
 
-                            FocusChartCard(
+                            FocusCardView(
                                 title: "Weekly Focus",
-                                data: Array(weeklyData),
-                                granularity: .weekly
+                                mode: .weeklyTotals(Array(weeklyData))
                             ) {
                                 // Weekly ignores anchorDate, pass nil.
                                 path.append(.detail(granularity: .weekly, anchorDate: nil))
