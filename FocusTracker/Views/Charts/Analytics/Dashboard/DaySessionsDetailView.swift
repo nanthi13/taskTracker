@@ -185,28 +185,12 @@ struct DaySessionsDetailView: View {
                         .chartYAxis {
                             AxisMarks(position: .leading)
                         }
-                        // Selection overlay: tap to pick the nearest session by x-position.
-                        .chartOverlay { proxy in
-                            GeometryReader { _ in
-                                Rectangle()
-                                    .fill(.clear)
-                                    .contentShape(Rectangle())
-                                    .gesture(
-                                        DragGesture(minimumDistance: 0)
-                                            .onEnded { value in
-                                                let location = value.location
-                                                if let date: Date = proxy.value(atX: location.x) {
-                                                    if let nearest = daySessions.min(by: {
-                                                        abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date))
-                                                    }) {
-                                                        selectedTask = nearest
-                                                    }
-                                                }
-                                            }
-                                    )
-                            }
+                        // Add a bit more bottom padding to avoid clipping x-axis labels.
+                        .chartPlotStyle { plotArea in
+                            plotArea
+                                .padding(.bottom, 12)
                         }
-                        .frame(height: 280)
+                        .frame(height: 330)
                         .padding(.horizontal)
 
                         // Sessions list under the chart (mirrors the chart content).
@@ -287,3 +271,4 @@ struct DaySessionsDetailView: View {
         DaySessionsDetailView(title: "Day Sessions", tasks: tasks, anchorDate: today)
     }
 }
+
