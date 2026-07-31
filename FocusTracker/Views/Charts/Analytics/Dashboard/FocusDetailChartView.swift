@@ -8,6 +8,7 @@ import Charts
 /// - Pages through windows (daily: 7 days, weekly: month-by-month) using buttons or horizontal swipes.
 /// - Shows an average RuleMark for the visible window.
 /// - Selecting a data point maps to the most recent task in that period and presents a detail sheet.
+/// - In daily mode, tapping a point opens the TaskDetail overlay with a DaySessionsDetailView for that day.
 struct FocusDetailChartView: View {
     let title: String
     let data: [FocusAnalyticsPoint]
@@ -21,6 +22,7 @@ struct FocusDetailChartView: View {
 
     @State private var selectedPoint: FocusAnalyticsPoint?
     @State private var selectedTask: PomodoroTaskModel?
+    @State private var selectedDay: Date?
 
     /// 0 = most recent window (current week or current month), 1 = previous window, etc.
     @State private var page: Int = 0
@@ -79,6 +81,7 @@ struct FocusDetailChartView: View {
                             page = min(page + 1, maxPage)
                             selectedPoint = nil
                             selectedTask = nil
+                            selectedDay = nil
                         }
                     } label: {
                         Image(systemName: "chevron.left")
@@ -92,6 +95,7 @@ struct FocusDetailChartView: View {
                             page = max(page - 1, 0)
                             selectedPoint = nil
                             selectedTask = nil
+                            selectedDay = nil
                         }
                     } label: {
                         Image(systemName: "chevron.right")
@@ -183,6 +187,35 @@ struct FocusDetailChartView: View {
                 }
                 .frame(height: 320)
                 .frame(maxWidth: .infinity) // Let the chart stretch horizontally
+                // Selection overlay for tapping a point (nearest by x).
+                .chartOverlay { proxy in
+                    GeometryReader { _ in
+                        Rectangle()
+                            .fill(.clear)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onEnded { value in
+                                        let location = value.location
+                                        if let date: Date = proxy.value(atX: location.x),
+                                           let nearest = closestPointInVisible(to: date) {
+                                            selectedPoint = nearest
+                                            if granularity == .daily {
+                                                // Open the shared TaskDetail overlay with DaySessionsDetailView
+                                                selectedDay = Calendar.current.startOfDay(for: nearest.date)
+                                                selectedTask = nil
+                                            } else {
+                                                // Weekly: keep existing behavior (map to most recent task)
+                                                if let task = taskFor(analyticsPoint: nearest) {
+                                                    selectedTask = task
+                                                    selectedDay = nil
+                                                }
+                                            }
+                                        }
+                                    }
+                            )
+                    }
+                }
             }
             .padding(.horizontal, 0) // Remove outer horizontal padding so it can go edge-to-edge
 
@@ -190,8 +223,8 @@ struct FocusDetailChartView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        // Presents TaskDetailView when a concrete task is selected.
-        .taskDetailSheet(selectedTask: $selectedTask)
+        // Presents TaskDetailView or DaySessionsDetailView in the same overlay.
+        .taskDetailSheet(selectedTask: $selectedTask, selectedDay: $selectedDay, tasks: tasks)
     }
 
     // MARK: - Helpers
