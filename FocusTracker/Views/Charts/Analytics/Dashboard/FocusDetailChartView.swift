@@ -187,7 +187,7 @@ struct FocusDetailChartView: View {
                 }
                 .frame(height: 320)
                 .frame(maxWidth: .infinity) // Let the chart stretch horizontally
-                // Selection overlay for tapping a point (nearest by x).
+                // Selection overlay for tapping a point.
                 .chartOverlay { proxy in
                     GeometryReader { _ in
                         Rectangle()
@@ -197,15 +197,29 @@ struct FocusDetailChartView: View {
                                 DragGesture(minimumDistance: 0)
                                     .onEnded { value in
                                         let location = value.location
-                                        if let date: Date = proxy.value(atX: location.x),
-                                           let nearest = closestPointInVisible(to: date) {
-                                            selectedPoint = nearest
-                                            if granularity == .daily {
-                                                // Open the shared TaskDetail overlay with DaySessionsDetailView
-                                                selectedDay = Calendar.current.startOfDay(for: nearest.date)
+                                        guard let tappedDate: Date = proxy.value(atX: location.x) else {
+                                            return
+                                        }
+
+                                        switch granularity {
+                                        case .daily:
+                                            // Snap to the tapped day's start to avoid off-by-one selection.
+                                            let cal = Calendar.current
+                                            let snapped = cal.startOfDay(for: tappedDate)
+                                            if let exact = visibleData.first(where: { cal.isDate($0.date, inSameDayAs: snapped) }) {
+                                                selectedPoint = exact
+                                                selectedDay = snapped
                                                 selectedTask = nil
-                                            } else {
-                                                // Weekly: keep existing behavior (map to most recent task)
+                                            } else if let nearest = closestPointInVisible(to: tappedDate) {
+                                                // Fallback (shouldn't happen with zero-filled days).
+                                                selectedPoint = nearest
+                                                selectedDay = cal.startOfDay(for: nearest.date)
+                                                selectedTask = nil
+                                            }
+
+                                        case .weekly:
+                                            if let nearest = closestPointInVisible(to: tappedDate) {
+                                                selectedPoint = nearest
                                                 if let task = taskFor(analyticsPoint: nearest) {
                                                     selectedTask = task
                                                     selectedDay = nil
@@ -251,4 +265,3 @@ struct FocusDetailChartView: View {
         }
     }
 }
-
