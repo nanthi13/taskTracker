@@ -29,28 +29,97 @@ struct StartStopButtonsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 100))
 
             case .running:
-                Button("Pause", action: pause)
-                    .buttonStyle(PomodoroButtonStyle(color: .teal))
+                //TODO: Change to names to symbols
+                HStack(spacing: 0) {
+                    Button{
+                        pause()
+                        // action pause
+                    }
+                    label: {
+                        Image(systemName: "pause")
+                            .font(.system(size: 40))
+                            .frame(width: 40, height: 40)
+
+                            
+                    }
+                    .buttonStyle(PomodoroButtonStyle(color: .yellow))
                     .accessibilityIdentifier("pauseButton")
-                Button("Reset", action: reset)
+                    //.clipShape(RoundedRectangle(cornerRadius: 100))
+                    
+                    Button {
+                        endSession()
+                    }
+                    label: {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 35))
+                            .frame(width: 40, height: 40)
+                           
+                    }
                     .buttonStyle(PomodoroButtonStyle(color: .red))
                     .accessibilityIdentifier("resetButton")
-
+                    //.clipShape(RoundedRectangle(cornerRadius: 100))
+                    
+                    
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 100))
+                
             case .paused:
-                Button("Resume", action: resume)
+                HStack(spacing: 0){
+                    Button {
+                        resume()
+                    }
+                    label: {
+                        Image(systemName: "play")
+                            .font(.system(size: 40))
+                            .frame(width: 40, height: 40)
+                    }
                     .buttonStyle(PomodoroButtonStyle(color: .green))
                     .accessibilityIdentifier("resumeButton")
-                Button("End Session", action: endSession)
+                    //.clipShape(RoundedRectangle(cornerRadius: 100))
+                    
+                    Button {
+                        endSession()
+                    }
+                    label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 40))
+                            .frame(width: 40, height: 40)
+                           
+                    }
                     .buttonStyle(PomodoroButtonStyle(color: .red))
                     .accessibilityIdentifier("endSessionButton")
+                    //.clipShape(RoundedRectangle(cornerRadius: 100))
                     
-                Button("Reset", action: reset)
+                    Button {
+                        reset()
+                    }
+                    label: {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 35))
+                            .frame(width: 40, height: 40)
+                            
+                    }
                     .buttonStyle(PomodoroButtonStyle(color: .red))
                     .accessibilityIdentifier("resetButton")
+                    //.clipShape(RoundedRectangle(cornerRadius: 100))
+                    
+//                    Button("Resume", action: resume)
+//                        .buttonStyle(PomodoroButtonStyle(color: .green))
+//                        .accessibilityIdentifier("resumeButton")
+//                    
+//                    Button("End Session", action: endSession)
+//                        .buttonStyle(PomodoroButtonStyle(color: .red))
+//                        .accessibilityIdentifier("endSessionButton")
+//                    
+//                    Button("Reset", action: reset)
+//                        .buttonStyle(PomodoroButtonStyle(color: .red))
+//                        .accessibilityIdentifier("resetButton")
                 
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 100))
             }
         }
-        .animation(.easeInOut, value: state)
+        .animation(.smooth, value: state)
     }
 }
 
