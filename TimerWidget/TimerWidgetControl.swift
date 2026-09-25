@@ -145,7 +145,7 @@ struct StartTimerIntent: SetValueIntent {
         }
 
         // Refresh the control so UI reflects the latest state.
-        WidgetCenter.shared.reloadTimelines(ofKind: TimerWidgetControl.kind)
+        await WidgetCenter.shared.reloadTimelines(ofKind: TimerWidgetControl.kind)
         return .result()
     }
 }

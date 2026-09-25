@@ -44,7 +44,7 @@ struct RecentTasksCardView: View {
                     }
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
+                        RoundedRectangle(cornerRadius: 15)
                             .fill(Color.gray.opacity(0.1))
                     )
                     .contentShape(Rectangle())
