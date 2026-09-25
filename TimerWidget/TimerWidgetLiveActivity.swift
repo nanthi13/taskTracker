@@ -39,6 +39,8 @@ struct TimerWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: TimerWidgetAttributes.self) { context in
             VStack(alignment: .leading, spacing: 8) {
+                
+                // sesstionType is always in .focusTime when run.
                 Text(context.state.sessionType == .focusTime ? "Focus Time" : "Break Time")
                     .font(.headline)
                 CountdownView(
@@ -69,15 +71,16 @@ struct TimerWidgetLiveActivity: Widget {
                     .buttonStyle(.bordered)
                 }
             }
+            .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 8)
-            .activityBackgroundTint(Color.cyan)
+            .activityBackgroundTint(Color.clear)
             .activitySystemActionForegroundColor(Color.black)
 
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     Image(systemName: context.state.sessionType == .focusTime ? "brain.head.profile" : "cup.and.saucer.fill")
+                        .padding()
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     CountdownView(
@@ -85,6 +88,7 @@ struct TimerWidgetLiveActivity: Widget {
                         isPaused: context.state.isPaused,
                         remainingSeconds: context.state.remainingSeconds
                     )
+                    .padding()
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     HStack(spacing: 16) {
